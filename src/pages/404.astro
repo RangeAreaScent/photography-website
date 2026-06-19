@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not here — Ryan" description="A page that does not exist on this archive.">
+  <section class="not-found">
+    <p class="line">Nothing here.</p>
+    <p class="back"><a href="/">Return</a></p>
+  </section>
+</Base>
+
+<style>
+  .not-found {
+    padding-top: 6rem;
+    max-width: 30rem;
+  }
+
+  .line {
+    font-size: 1.125rem;
+    margin: 0 0 1.25rem;
+    color: var(--text);
+  }
+
+  .back {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
+  .back a {
+    border-bottom: 0.5px solid var(--rule);
+  }
+
+  .back a:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+</style>
