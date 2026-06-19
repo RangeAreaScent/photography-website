@@ -9,3 +9,4 @@ dist/
 # Tooling artifacts at project root
 /*.png
 .playwright-mcp/
+.vercel
