@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="About — Ryan">
+  <section class="about">
+    <p class="bio">
+      Ryan is a photographer based somewhere quiet. This site is a slow
+      archive of selected work and a monthly photograph.
+    </p>
+
+    <ul class="links">
+      <li><a href="mailto:hello@example.com">hello@example.com</a></li>
+      <li><a href="https://instagram.com" rel="me noopener">instagram</a></li>
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .about {
+    padding-top: 0.5rem;
+    max-width: 32rem;
+  }
+
+  .bio {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 2rem;
+  }
+
+  .links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.9375rem;
+    font-style: italic;
+    color: var(--text-muted);
+  }
+
+  .links li + li {
+    margin-top: 0.4rem;
+  }
+
+  .links a:hover {
+    color: var(--text);
+  }
+</style>

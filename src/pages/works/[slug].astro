@@ -1,0 +1,99 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const series = await getCollection('works');
+  return series.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'works'>;
+}
+
+const { entry } = Astro.props;
+const { title, year, intro, photos } = entry.data;
+---
+
+<Base title={`${title} — Ryan`}>
+  <section class="series">
+    <header class="series-head">
+      <h1 class="title">{title}</h1>
+      <span class="year muted">{year}</span>
+      {intro && <p class="intro muted">{intro}</p>}
+    </header>
+
+    <div class="library">
+      {
+        photos.map((p, i) => (
+          <figure class="figure">
+            <Image
+              src={p.src}
+              alt={p.caption ?? title}
+              widths={[800, 1280, 1920, 2560]}
+              sizes="(min-width: 1024px) 70vw, 100vw"
+              quality={88}
+              format="webp"
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+            {p.caption && <figcaption>{p.caption}</figcaption>}
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .series {
+    padding-top: 0.5rem;
+  }
+
+  .series-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+    font-weight: 400;
+    margin: 0;
+    color: var(--text);
+  }
+
+  .year {
+    font-size: 0.9375rem;
+  }
+
+  .intro {
+    flex-basis: 100%;
+    max-width: 36rem;
+    font-size: 0.9375rem;
+    margin: 0.5rem 0 0;
+    line-height: 1.55;
+  }
+
+  .library {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
+  .figure {
+    margin: 0;
+  }
+
+  .figure figcaption {
+    margin-top: 0.875rem;
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+</style>

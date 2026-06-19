@@ -1,0 +1,88 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+
+const monthly = (await getCollection('monthly')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const latest = monthly[0];
+const fmt = latest?.data.date.toLocaleString('en-US', { year: 'numeric', month: 'long' });
+---
+
+<Base title="Ryan — Photographs">
+  <section class="home">
+    {
+      latest && (
+        <figure class="hero">
+          <Image
+            src={latest.data.photo}
+            alt={latest.data.caption ?? fmt ?? 'Latest photograph'}
+            widths={[800, 1280, 1920, 2560]}
+            sizes="(min-width: 1024px) 70vw, 100vw"
+            quality={88}
+            format="webp"
+          />
+          <figcaption>
+            <span class="when">{fmt}</span>
+            {latest.data.caption && <span class="cap">  ·  {latest.data.caption}</span>}
+          </figcaption>
+        </figure>
+      )
+    }
+
+    <div class="intro">
+      <p>
+        Ryan is a photographer based somewhere quiet. This site is a slow
+        archive of selected work and a single photograph each month.
+      </p>
+      <p>
+        Work in series sits under <a href="/works">Works</a>. The monthly
+        photograph above is the latest entry in <a href="/monthly">Monthly</a>,
+        updated on the fifteenth.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .home {
+    padding-top: 0.5rem;
+  }
+
+  .hero {
+    margin: 0;
+  }
+
+  .hero figcaption {
+    margin-top: 1rem;
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+
+  .when {
+    color: var(--text);
+  }
+
+  .intro {
+    max-width: 30rem;
+    margin: 5rem auto 0;
+    text-align: center;
+  }
+
+  .intro p {
+    margin: 0 0 1rem;
+    line-height: 1.6;
+  }
+
+  .intro a {
+    font-style: italic;
+    border-bottom: 0.5px solid var(--rule);
+  }
+
+  .intro a:hover {
+    border-color: var(--text);
+  }
+</style>

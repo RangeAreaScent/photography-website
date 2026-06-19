@@ -1,0 +1,237 @@
+---
+import { getCollection } from 'astro:content';
+
+const { pathname } = Astro.url;
+const isActive = (href: string) =>
+  href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+const inWorks = pathname.startsWith('/works');
+const inMonthly = pathname.startsWith('/monthly');
+
+const allWorks = inWorks
+  ? (await getCollection('works')).sort((a, b) => a.data.order - b.data.order)
+  : [];
+
+const allMonthly = inMonthly
+  ? (await getCollection('monthly')).sort(
+      (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+    )
+  : [];
+
+const worksSlug = pathname.replace(/^\/works\/?/, '').replace(/\/$/, '');
+const currentWorkId = inWorks
+  ? worksSlug === '' ? (allWorks[0]?.id ?? '') : worksSlug
+  : '';
+
+const monthlySlug = pathname.replace(/^\/monthly\/?/, '').replace(/\/$/, '');
+const currentMonthlyId = inMonthly
+  ? monthlySlug === '' ? (allMonthly[0]?.id ?? '') : monthlySlug
+  : '';
+
+const fmtMonth = (d: Date) =>
+  d.toLocaleString('en-US', { year: 'numeric', month: 'long' });
+---
+
+<aside class="site-nav">
+  <a href="/" class="brand" aria-label="Home">Ryan</a>
+  <nav aria-label="Primary">
+    <a href="/works" class:list={['nav-link', { active: isActive('/works') }]}>Works</a>
+    <a href="/monthly" class:list={['nav-link', { active: isActive('/monthly') }]}>Monthly</a>
+    <a href="/about" class:list={['nav-link', { active: isActive('/about') }]}>About</a>
+    <a href="mailto:hello@example.com" class="nav-link">Contact</a>
+    <a href="https://instagram.com" class="nav-link" rel="me noopener">Instagram</a>
+  </nav>
+  <p class="meta">© {new Date().getFullYear()}  Ryan</p>
+</aside>
+
+{inWorks && allWorks.length > 0 && (
+  <aside class="sub-nav" aria-label="Series">
+    <ul>
+      {allWorks.map((s) => (
+        <li>
+          <a
+            href={`/works/${s.id}`}
+            class:list={['sub-link', { active: currentWorkId === s.id }]}
+          >
+            {s.data.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}
+
+{inMonthly && allMonthly.length > 0 && (
+  <aside class="sub-nav" aria-label="Monthly">
+    <ul>
+      {allMonthly.map((m) => (
+        <li>
+          <a
+            href={`/monthly/${m.id}`}
+            class:list={['sub-link', { active: currentMonthlyId === m.id }]}
+          >
+            {fmtMonth(m.data.date)}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}
+
+<style>
+  .site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100vh;
+    padding: 2.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .brand {
+    font-size: 1.375rem;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 2rem;
+    letter-spacing: 0.005em;
+  }
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .nav-link {
+    color: var(--text-muted);
+    width: max-content;
+    padding-left: 0.875rem;
+    position: relative;
+    transition: color 120ms ease;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+  }
+
+  .nav-link.active {
+    color: var(--text);
+  }
+
+  .nav-link.active::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--text);
+    font-style: normal;
+  }
+
+  .meta {
+    margin-top: auto;
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+    font-style: normal;
+  }
+
+  .sub-nav {
+    position: fixed;
+    top: 0;
+    left: 200px;
+    width: 170px;
+    height: 100vh;
+    padding: 6.1rem 1.5rem 2.5rem;
+    background: var(--bg);
+    z-index: 9;
+  }
+
+  .sub-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .sub-link {
+    color: var(--text-muted);
+    padding-left: 0.75rem;
+    position: relative;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    font-size: 0.8125rem;
+    font-style: normal;
+    line-height: 1.55;
+    transition: color 120ms ease;
+  }
+
+  .sub-link:hover {
+    color: var(--text);
+  }
+
+  .sub-link.active {
+    color: var(--text);
+  }
+
+  .sub-link.active::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--text);
+  }
+
+  @media (max-width: 720px) {
+    .site-nav {
+      position: static;
+      width: 100%;
+      height: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.25rem;
+    }
+
+    .brand {
+      margin-bottom: 0;
+      margin-right: 0.5rem;
+      font-size: 1.125rem;
+    }
+
+    nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    .nav-link {
+      padding-left: 0;
+    }
+
+    .nav-link.active::before {
+      content: '• ';
+      position: static;
+    }
+
+    .meta {
+      display: none;
+    }
+
+    .sub-nav {
+      display: none;
+    }
+  }
+</style>
