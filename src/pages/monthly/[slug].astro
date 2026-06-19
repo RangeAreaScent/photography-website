@@ -1,5 +1,5 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { ogImageUrl } from '../../lib/og';
@@ -23,6 +23,9 @@ const fmt = entry.data.date.toLocaleString('en-US', {
 });
 const ogImage = await ogImageUrl(entry.data.photo, Astro.site);
 const description = `Monthly photograph — ${fmt}${entry.data.caption ? ` · ${entry.data.caption}` : ''}.`;
+
+const { Content } = await render(entry);
+const hasNote = (entry.body ?? '').trim().length > 0;
 ---
 
 <Base
@@ -42,8 +45,13 @@ const description = `Monthly photograph — ${fmt}${entry.data.caption ? ` · ${
         format="webp"
       />
       <figcaption>
-        <span class="when">{fmt}</span>
-        {entry.data.caption && <span class="cap">  ·  {entry.data.caption}</span>}
+        {entry.data.caption && <p class="title">{entry.data.caption}</p>}
+        <p class="when">{fmt}</p>
+        {hasNote && (
+          <div class="note">
+            <Content />
+          </div>
+        )}
       </figcaption>
     </figure>
   </section>
@@ -59,13 +67,33 @@ const description = `Monthly photograph — ${fmt}${entry.data.caption ? ` · ${
   }
 
   .figure figcaption {
-    margin-top: 0.875rem;
-    text-align: left;
-    color: var(--text-muted);
+    margin-top: 1rem;
+    text-align: center;
     font-size: 0.9375rem;
   }
 
-  .when {
+  .title {
+    margin: 0;
     color: var(--text);
+  }
+
+  .when {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted);
+  }
+
+  .note {
+    margin: 2rem auto 0;
+    max-width: 28rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .note :global(p) {
+    margin: 0 0 1rem;
+  }
+
+  .note :global(p:last-child) {
+    margin-bottom: 0;
   }
 </style>

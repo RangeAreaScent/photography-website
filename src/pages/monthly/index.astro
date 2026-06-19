@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { ogImageUrl } from '../../lib/og';
@@ -16,6 +16,10 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
 const description = latest
   ? `Monthly photograph — ${fmt}${latest.data.caption ? ` · ${latest.data.caption}` : ''}.`
   : 'Monthly photographs by Doohee Lee.';
+
+const rendered = latest ? await render(latest) : null;
+const Content = rendered?.Content;
+const hasNote = latest ? (latest.body ?? '').trim().length > 0 : false;
 ---
 
 <Base
@@ -25,20 +29,25 @@ const description = latest
   ogType="article"
 >
   {
-    latest ? (
+    latest && Content ? (
       <section class="single">
         <figure class="figure">
           <Image
             src={latest.data.photo}
             alt={latest.data.caption ?? fmt ?? 'Monthly photograph'}
             widths={[800, 1280, 1920, 2560]}
-            sizes="(min-width: 1024px) 60vw, 100vw"
+            sizes="(min-width: 1024px) 70vw, 100vw"
             quality={88}
             format="webp"
           />
           <figcaption>
-            <span class="when">{fmt}</span>
-            {latest.data.caption && <span class="cap">  ·  {latest.data.caption}</span>}
+            {latest.data.caption && <p class="title">{latest.data.caption}</p>}
+            <p class="when">{fmt}</p>
+            {hasNote && (
+              <div class="note">
+                <Content />
+              </div>
+            )}
           </figcaption>
         </figure>
       </section>
@@ -58,13 +67,33 @@ const description = latest
   }
 
   .figure figcaption {
-    margin-top: 0.875rem;
-    text-align: left;
-    color: var(--text-muted);
+    margin-top: 1rem;
+    text-align: center;
     font-size: 0.9375rem;
   }
 
-  .when {
+  .title {
+    margin: 0;
     color: var(--text);
+  }
+
+  .when {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted);
+  }
+
+  .note {
+    margin: 2rem auto 0;
+    max-width: 28rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .note :global(p) {
+    margin: 0 0 1rem;
+  }
+
+  .note :global(p:last-child) {
+    margin-bottom: 0;
   }
 </style>
