@@ -16,7 +16,7 @@ const works = defineCollection({
             caption: z.string().optional(),
           }),
         )
-        .min(1),
+        .default([]),
     }),
 });
 

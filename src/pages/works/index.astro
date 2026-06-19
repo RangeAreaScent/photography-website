@@ -6,7 +6,9 @@ import { ogImageUrl } from '../../lib/og';
 
 const series = (await getCollection('works')).sort((a, b) => a.data.order - b.data.order);
 const first = series[0];
-const ogImage = first ? await ogImageUrl(first.data.photos[0]!.src, Astro.site) : undefined;
+const ogImage = first?.data.photos[0]?.src
+  ? await ogImageUrl(first.data.photos[0].src, Astro.site)
+  : undefined;
 const description = first
   ? `${first.data.title}, ${first.data.year}${first.data.intro ? ` — ${first.data.intro}` : ''}`
   : 'Photo series by Doohee Lee.';
@@ -27,22 +29,26 @@ const description = first
           {first.data.intro && <p class="intro muted">{first.data.intro}</p>}
         </header>
 
-        <div class="library">
-          {first.data.photos.map((p, i) => (
-            <figure class="figure">
-              <Image
-                src={p.src}
-                alt={p.caption ?? first.data.title}
-                widths={[800, 1280, 1920, 2560]}
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                quality={88}
-                format="webp"
-                loading={i === 0 ? 'eager' : 'lazy'}
-              />
-              {p.caption && <figcaption>{p.caption}</figcaption>}
-            </figure>
-          ))}
-        </div>
+        {first.data.photos.length === 0 ? (
+          <p class="muted empty">Photographs coming soon.</p>
+        ) : (
+          <div class="library">
+            {first.data.photos.map((p, i) => (
+              <figure class="figure">
+                <Image
+                  src={p.src}
+                  alt={p.caption ?? first.data.title}
+                  widths={[800, 1280, 1920, 2560]}
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  quality={88}
+                  format="webp"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                />
+                {p.caption && <figcaption>{p.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        )}
       </section>
     ) : (
       <p class="muted">No series yet.</p>
@@ -96,6 +102,11 @@ const description = first
     margin-top: 0.875rem;
     text-align: left;
     color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+
+  .empty {
+    margin: 1rem 0 0;
     font-size: 0.9375rem;
   }
 </style>

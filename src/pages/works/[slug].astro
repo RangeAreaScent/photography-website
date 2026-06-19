@@ -18,7 +18,7 @@ interface Props {
 
 const { entry } = Astro.props;
 const { title, year, intro, photos } = entry.data;
-const ogImage = await ogImageUrl(photos[0]!.src, Astro.site);
+const ogImage = photos[0]?.src ? await ogImageUrl(photos[0].src, Astro.site) : undefined;
 const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
 ---
 
@@ -35,9 +35,11 @@ const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
       {intro && <p class="intro muted">{intro}</p>}
     </header>
 
-    <div class="library">
-      {
-        photos.map((p, i) => (
+    {photos.length === 0 ? (
+      <p class="muted empty">Photographs coming soon.</p>
+    ) : (
+      <div class="library">
+        {photos.map((p, i) => (
           <figure class="figure">
             <Image
               src={p.src}
@@ -50,9 +52,9 @@ const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
             />
             {p.caption && <figcaption>{p.caption}</figcaption>}
           </figure>
-        ))
-      }
-    </div>
+        ))}
+      </div>
+    )}
   </section>
 </Base>
 
@@ -102,6 +104,11 @@ const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
     margin-top: 0.875rem;
     text-align: left;
     color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+
+  .empty {
+    margin: 1rem 0 0;
     font-size: 0.9375rem;
   }
 </style>
