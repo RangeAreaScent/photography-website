@@ -10,14 +10,14 @@ interface Props {
 }
 
 const {
-  title = 'Ryan — Photographs',
-  description = 'Selected photographs and a monthly photograph by Ryan.',
+  title = 'Doohee Lee — Photographs',
+  description = 'Selected photographs and a monthly photograph by Doohee Lee.',
   ogImage,
   ogType = 'website',
 } = Astro.props;
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
-const siteName = 'Ryan — Photographs';
+const siteName = 'Doohee Lee — Photographs';
 ---
 
 <!doctype html>
@@ -47,7 +47,7 @@ const siteName = 'Ryan — Photographs';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;1,400;1,500&display=swap"
     />
   </head>
   <body>

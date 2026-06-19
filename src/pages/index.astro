@@ -13,10 +13,10 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
 ---
 
 <Base
-  title="Ryan — Photographs"
+  title="Doohee Lee — Photographs"
   description={latest?.data.caption
-    ? `${fmt} — ${latest.data.caption}. Photographs by Ryan.`
-    : 'Selected photographs and a monthly photograph by Ryan.'}
+    ? `${fmt} — ${latest.data.caption}. Photographs by Doohee Lee.`
+    : 'Selected photographs and a monthly photograph by Doohee Lee.'}
   ogImage={ogImage}
 >
   <section class="home">
@@ -41,13 +41,9 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
 
     <div class="intro">
       <p>
-        Ryan is a photographer based somewhere quiet. This site is a slow
-        archive of selected work and a single photograph each month.
-      </p>
-      <p>
-        Work in series sits under <a href="/works">Works</a>. The monthly
-        photograph above is the latest entry in <a href="/monthly">Monthly</a>,
-        updated on the fifteenth.
+        Photographs by Doohee Lee — pursued as a part of everyday life.
+        Series under <a href="/works">Works</a>, a single photograph each
+        month in <a href="/monthly">Monthly</a>.
       </p>
     </div>
   </section>
@@ -63,9 +59,8 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
   }
 
   .hero figcaption {
-    margin-top: 1rem;
-    text-align: center;
-    font-style: italic;
+    margin-top: 0.875rem;
+    text-align: left;
     color: var(--text-muted);
     font-size: 0.9375rem;
   }
@@ -76,17 +71,16 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
 
   .intro {
     max-width: 30rem;
-    margin: 5rem auto 0;
-    text-align: center;
+    margin: 4rem 0 0;
   }
 
   .intro p {
     margin: 0 0 1rem;
-    line-height: 1.6;
+    line-height: 1.7;
+    color: var(--text);
   }
 
   .intro a {
-    font-style: italic;
     border-bottom: 0.5px solid var(--rule);
   }
 

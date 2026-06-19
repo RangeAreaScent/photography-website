@@ -5,8 +5,8 @@
   --text-faint: #9aa0a0;
   --rule: #cdd2d2;
 
-  --font-serif: 'Fraunces', 'Iowan Old Style', 'Source Serif Pro', Georgia, serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'IBM Plex Sans', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --measure: 56rem;
   --pad-x: clamp(1.5rem, 4vw, 3rem);
@@ -22,9 +22,9 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-serif);
-  font-size: 17px;
-  line-height: 1.55;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

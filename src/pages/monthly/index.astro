@@ -1,70 +1,76 @@
 ---
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import { ogImageUrl } from '../../lib/og';
 
 const entries = (await getCollection('monthly')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
-const latest = entries[0];
-const fmt = latest?.data.date.toLocaleString('en-US', {
-  year: 'numeric',
-  month: 'long',
-});
-const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undefined;
-const description = latest
-  ? `Monthly photograph — ${fmt}${latest.data.caption ? ` · ${latest.data.caption}` : ''}.`
-  : 'Monthly photographs by Ryan.';
+
+const fmt = (d: Date) =>
+  d.toLocaleString('en-US', { year: 'numeric', month: 'long' });
 ---
 
 <Base
-  title={latest ? `${fmt} — Ryan` : 'Monthly — Ryan'}
-  description={description}
-  ogImage={ogImage}
-  ogType="article"
+  title="Monthly — Doohee Lee"
+  description="A single photograph each month by Doohee Lee."
 >
-  {
-    latest ? (
-      <section class="single">
-        <figure class="figure">
-          <Image
-            src={latest.data.photo}
-            alt={latest.data.caption ?? fmt ?? 'Monthly photograph'}
-            widths={[800, 1280, 1920, 2560]}
-            sizes="(min-width: 1024px) 60vw, 100vw"
-            quality={88}
-            format="webp"
-          />
-          <figcaption>
-            <span class="when">{fmt}</span>
-            {latest.data.caption && <span class="cap">  ·  {latest.data.caption}</span>}
-          </figcaption>
-        </figure>
-      </section>
-    ) : (
-      <p class="muted">No monthly photographs yet.</p>
-    )
-  }
+  <section class="monthly-index">
+    <h1 class="title">Monthly</h1>
+
+    <ol>
+      {
+        entries.map((m) => (
+          <li>
+            <a href={`/monthly/${m.id}`} class="row">
+              <span class="when">{fmt(m.data.date)}</span>
+              {m.data.caption && <span class="caption muted">{m.data.caption}</span>}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+
+    {entries.length === 0 && <p class="muted">No monthly photographs yet.</p>}
+  </section>
 </Base>
 
 <style>
-  .single {
+  .monthly-index {
     padding-top: 0.5rem;
+    max-width: 40rem;
   }
 
-  .figure {
+  .title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0 0 1.75rem;
+    color: var(--text);
+  }
+
+  ol {
+    list-style: none;
     margin: 0;
+    padding: 0;
   }
 
-  .figure figcaption {
-    margin-top: 0.875rem;
-    text-align: left;
-    color: var(--text-muted);
+  .row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.875rem;
+    padding: 0.35rem 0;
+    transition: opacity 120ms ease;
     font-size: 0.9375rem;
+  }
+
+  .row:hover {
+    opacity: 0.55;
   }
 
   .when {
     color: var(--text);
+  }
+
+  .caption {
+    font-size: 0.875rem;
   }
 </style>

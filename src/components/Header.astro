@@ -33,7 +33,7 @@ const fmtMonth = (d: Date) =>
 ---
 
 <aside class="site-nav">
-  <a href="/" class="brand" aria-label="Home">Ryan</a>
+  <a href="/" class="brand" aria-label="Home">Doohee Lee</a>
   <nav aria-label="Primary">
     <a href="/works" class:list={['nav-link', { active: isActive('/works') }]}>Works</a>
     <a href="/monthly" class:list={['nav-link', { active: isActive('/monthly') }]}>Monthly</a>
@@ -41,7 +41,7 @@ const fmtMonth = (d: Date) =>
     <a href="mailto:hello@example.com" class="nav-link">Contact</a>
     <a href="https://instagram.com" class="nav-link" rel="me noopener">Instagram</a>
   </nav>
-  <p class="meta">© {new Date().getFullYear()}  Ryan</p>
+  <p class="meta">© {new Date().getFullYear()}  Doohee Lee</p>
 </aside>
 
 {inWorks && allWorks.length > 0 && (
@@ -201,7 +201,7 @@ const fmtMonth = (d: Date) =>
       align-items: baseline;
       justify-content: flex-start;
       gap: 1rem;
-      padding: 1.25rem 1.25rem;
+      padding: 1.25rem 1.25rem 0.75rem;
     }
 
     .brand {
@@ -231,7 +231,30 @@ const fmtMonth = (d: Date) =>
     }
 
     .sub-nav {
-      display: none;
+      position: static;
+      width: 100%;
+      height: auto;
+      padding: 0 1.25rem 1rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-bottom: 0.5px solid var(--rule);
+    }
+
+    .sub-nav ul {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 1rem;
+    }
+
+    .sub-link {
+      padding-left: 0;
+      font-size: 0.8125rem;
+      white-space: nowrap;
+    }
+
+    .sub-link.active::before {
+      content: '• ';
+      position: static;
     }
   }
 </style>

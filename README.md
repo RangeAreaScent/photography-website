@@ -201,7 +201,7 @@ exiftool -gps:all= -location:all= -overwrite_original src/content/monthly/*.jpg
 
 ### 이름·브랜드명
 
-- `src/components/Header.astro` — sidebar 상단 `Ryan`
+- `src/components/Header.astro` — sidebar 상단 `Doohee Lee`
 - `src/layouts/Base.astro` — `siteName`, default title
 - `src/pages/about.astro` — title
 - `src/pages/404.astro` — title

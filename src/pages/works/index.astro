@@ -9,11 +9,11 @@ const first = series[0];
 const ogImage = first ? await ogImageUrl(first.data.photos[0]!.src, Astro.site) : undefined;
 const description = first
   ? `${first.data.title}, ${first.data.year}${first.data.intro ? ` — ${first.data.intro}` : ''}`
-  : 'Photo series by Ryan.';
+  : 'Photo series by Doohee Lee.';
 ---
 
 <Base
-  title={first ? `${first.data.title} — Ryan` : 'Works — Ryan'}
+  title={first ? `${first.data.title} — Doohee Lee` : 'Works — Doohee Lee'}
   description={description}
   ogImage={ogImage}
   ogType="article"
@@ -64,8 +64,8 @@ const description = first
   }
 
   .title {
-    font-size: 1.125rem;
-    font-weight: 400;
+    font-size: 1.25rem;
+    font-weight: 500;
     margin: 0;
     color: var(--text);
   }

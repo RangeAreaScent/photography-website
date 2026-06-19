@@ -2,10 +2,22 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="About — Ryan" description="About Ryan and this archive.">
+<Base
+  title="About — Doohee Lee"
+  description="Doohee Lee — based in Georgia, pursuing photography as everyday life."
+>
   <section class="about">
+    <h1 class="name">Doohee Lee</h1>
+
+    <div class="bio" lang="ko">
+      <p>조지아에 거주중이며 일상으로서의 사진을 추구.</p>
+      <p>정적인 것을 좋아하며 자연스러움을 동경한다.</p>
+      <p>음악, 영화 그리고 빗소리를 좋아한다.</p>
+      <p>사진으로서 사유를 할 수 있는 것에 감사한다.</p>
+    </div>
+
     <ul class="links">
-      <li><a href="mailto:hello@example.com">hello@example.com</a></li>
+      <li><a href="mailto:dui0828@gmail.com">dui0828@gmail.com</a></li>
       <li><a href="https://instagram.com" rel="me noopener">instagram</a></li>
     </ul>
   </section>
@@ -15,6 +27,23 @@ import Base from '../layouts/Base.astro';
   .about {
     padding-top: 0.5rem;
     max-width: 32rem;
+  }
+
+  .name {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0 0 1.75rem;
+    color: var(--text);
+  }
+
+  .bio {
+    margin-bottom: 2.5rem;
+  }
+
+  .bio p {
+    margin: 0 0 0.625rem;
+    line-height: 1.7;
+    color: var(--text);
   }
 
   .links {
