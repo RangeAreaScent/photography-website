@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://d612.space/sitemap-index.xml

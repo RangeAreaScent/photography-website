@@ -2,12 +2,22 @@
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import { ogImageUrl } from '../../lib/og';
 
 const series = (await getCollection('works')).sort((a, b) => a.data.order - b.data.order);
 const first = series[0];
+const ogImage = first ? await ogImageUrl(first.data.photos[0]!.src, Astro.site) : undefined;
+const description = first
+  ? `${first.data.title}, ${first.data.year}${first.data.intro ? ` — ${first.data.intro}` : ''}`
+  : 'Photo series by Ryan.';
 ---
 
-<Base title={first ? `${first.data.title} — Ryan` : 'Works — Ryan'}>
+<Base
+  title={first ? `${first.data.title} — Ryan` : 'Works — Ryan'}
+  description={description}
+  ogImage={ogImage}
+  ogType="article"
+>
   {
     first ? (
       <section class="series">

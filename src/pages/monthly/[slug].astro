@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import { ogImageUrl } from '../../lib/og';
 
 export async function getStaticPaths() {
   const entries = await getCollection('monthly');
@@ -20,9 +21,16 @@ const fmt = entry.data.date.toLocaleString('en-US', {
   year: 'numeric',
   month: 'long',
 });
+const ogImage = await ogImageUrl(entry.data.photo, Astro.site);
+const description = `Monthly photograph — ${fmt}${entry.data.caption ? ` · ${entry.data.caption}` : ''}.`;
 ---
 
-<Base title={`${fmt} — Ryan`}>
+<Base
+  title={`${fmt} — Ryan`}
+  description={description}
+  ogImage={ogImage}
+  ogType="article"
+>
   <section class="single">
     <figure class="figure">
       <Image

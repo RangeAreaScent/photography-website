@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import { ogImageUrl } from '../../lib/og';
 
 export async function getStaticPaths() {
   const series = await getCollection('works');
@@ -17,9 +18,16 @@ interface Props {
 
 const { entry } = Astro.props;
 const { title, year, intro, photos } = entry.data;
+const ogImage = await ogImageUrl(photos[0]!.src, Astro.site);
+const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
 ---
 
-<Base title={`${title} — Ryan`}>
+<Base
+  title={`${title} — Ryan`}
+  description={description}
+  ogImage={ogImage}
+  ogType="article"
+>
   <section class="series">
     <header class="series-head">
       <h1 class="title">{title}</h1>

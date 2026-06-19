@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import { ogImageUrl } from '../../lib/og';
 
 const entries = (await getCollection('monthly')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime(),
@@ -11,9 +12,18 @@ const fmt = latest?.data.date.toLocaleString('en-US', {
   year: 'numeric',
   month: 'long',
 });
+const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undefined;
+const description = latest
+  ? `Monthly photograph — ${fmt}${latest.data.caption ? ` · ${latest.data.caption}` : ''}.`
+  : 'Monthly photographs by Ryan.';
 ---
 
-<Base title={latest ? `${fmt} — Ryan` : 'Monthly — Ryan'}>
+<Base
+  title={latest ? `${fmt} — Ryan` : 'Monthly — Ryan'}
+  description={description}
+  ogImage={ogImage}
+  ogType="article"
+>
   {
     latest ? (
       <section class="single">
