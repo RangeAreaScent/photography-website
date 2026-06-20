@@ -2,9 +2,15 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+**/.DS_Store
 .env
 .env.*
 !.env.example
+
+# Photo app lock/sidecar files
+*~lock~
+*.af~lock~
+*.xmp
 
 # Tooling artifacts at project root
 /*.png
