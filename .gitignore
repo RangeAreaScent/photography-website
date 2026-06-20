@@ -17,3 +17,6 @@ dist/
 .playwright-mcp/
 .screenshots/
 .vercel
+
+# Originals — local only; processed copies go to src/content/
+originals/

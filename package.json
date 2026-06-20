@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare-photos": "node scripts/prepare-photos.mjs",
+    "predev": "npm run prepare-photos",
+    "prebuild": "npm run prepare-photos",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -11,6 +14,7 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^5.14.0"
+    "astro": "^5.14.0",
+    "sharp": "^0.35.2"
   }
 }

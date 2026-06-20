@@ -35,25 +35,44 @@ Push하면 Vercel이 자동으로 빌드·배포. 1~2분 후 https://d612.space 
 
 ---
 
+## 사진 운영 구조 (중요)
+
+원본 사진은 **`originals/` 폴더**에 들어가고 (git에 안 올라감), 변환된 작은 파일이 자동으로 **`src/content/`** 에 생기는 구조입니다.
+
+```
+originals/                       ← 로컬에만, git에서 제외 (대용량 원본 보관)
+├── monthly/
+│   └── 2026-07.jpg              (카메라 원본 그대로, 10~20MB)
+└── works/
+    └── 02-concrete-geometry/
+        ├── 01.jpg               (선정된 사진)
+        └── _candidates/         ← _ 접두사 폴더는 스크립트가 무시
+            └── candidate.jpg    (작업 흐름용 후보 파일)
+
+src/content/                     ← git에 들어감, 변환된 작은 파일
+├── monthly/
+│   ├── 2026-07.jpg             (긴 쪽 3000px·JPEG 90%·GPS 제거, ~2MB)
+│   └── 2026-07.md              ← 메타데이터는 여기서 편집
+└── works/...
+```
+
+**변환은 자동.** `npm run dev` 또는 `npm run build`를 실행하면 그 전에 `prepare-photos` 스크립트가 돌면서 `originals/`에 새 파일이 있으면 자동으로 변환해 `src/content/`에 떨굽니다. 수동으로 돌리고 싶으면 `npm run prepare-photos`.
+
+`_` 접두사 폴더(`_candidates/` 등) 안의 파일은 변환되지 않음 — 후보 사진을 같이 보관해도 사이트엔 영향 없음.
+
+---
+
 ## 매달 사진 올리기 (Monthly)
 
-매월 사진 한 장씩 추가하는 흐름.
+### 1. 원본을 `originals/monthly/`에 떨구기
 
-### 1. 사진 파일 준비
+- Lightroom/Capture One/카메라 앱에서 export한 JPEG 원본
+- 파일명: **소문자** `.jpg`, 날짜 기반 (예: `2026-07.jpg`)
+- 원본 크기·메타 그대로 둬도 됩니다 — 스크립트가 알아서 줄이고 GPS 제거
 
-- Lightroom/Capture One/사진 앱에서 export
-- **권장 설정**: 긴 쪽 3000px / JPEG 품질 90% / 색공간 sRGB
-- **GPS 메타 제거** (아래 "사진 export" 섹션 참고)
-- 파일명: **소문자** `.jpg` (예: `2026-07.jpg`)
+### 2. `.md` 메타데이터 작성
 
-### 2. 파일 두 개 추가
-
-`src/content/monthly/` 폴더에 다음 두 파일:
-
-```
-src/content/monthly/2026-07.jpg     ← 사진
-src/content/monthly/2026-07.md      ← 메타데이터
-```
+`src/content/monthly/2026-07.md` 만들기:
 
 ### 3. `.md` 파일 내용
 
@@ -90,37 +109,38 @@ git push
 
 작품집 형태로 여러 사진을 묶는 흐름.
 
-### 1. 폴더 + 파일 구조
-
-`src/content/works/` 아래 다음 구조:
+### 1. 원본을 `originals/works/<slug>/`에 떨구기
 
 ```
-src/content/works/
-├── 02-some-slug.md          ← 시리즈 메타
-└── 02-some-slug/            ← 시리즈 사진 폴더 (이름 같게)
-    ├── 01.jpg
-    ├── 02.jpg
-    └── 03.jpg
+originals/works/04-new-series/
+├── 01.jpg
+├── 02.jpg
+└── _candidates/        ← 후보 사진은 여기, 변환 안 됨
+    └── ...
 ```
 
-- 폴더명 = `.md` 파일명(확장자 제외)으로 맞춰야 함
-- 슬러그(`some-slug`)는 URL이 됨: `d612.space/works/02-some-slug`
+- 슬러그(`new-series`)는 URL이 됨: `d612.space/works/04-new-series`
+- 폴더명 = `.md` 파일명(확장자 제외)과 같게
 
-### 2. `.md` 파일 내용
+### 2. `.md` 파일 작성
+
+`src/content/works/04-new-series.md`:
 
 ```yaml
 ---
 title: 시리즈 제목
 year: 2026
-order: 2
+order: 4
 intro: (선택) 시리즈 짧은 설명. 비워두면 표시 안 됨.
 photos:
-  - src: ./02-some-slug/01.jpg
+  - src: ./04-new-series/01.jpg
     caption: (선택) 사진별 한 줄 설명
-  - src: ./02-some-slug/02.jpg
-  - src: ./02-some-slug/03.jpg
+  - src: ./04-new-series/02.jpg
+  - src: ./04-new-series/03.jpg
 ---
 ```
+
+`./04-new-series/01.jpg` 경로는 **변환 후의 `src/content/` 안 경로** 기준. 스크립트가 알아서 그 자리에 변환본을 떨굽니다.
 
 - `title`: 시리즈 제목 (좌측 sub-nav에 표시)
 - `year`: 연도
@@ -144,7 +164,7 @@ git push
 
 이미 있는 시리즈에 사진만 더 넣고 싶을 때.
 
-1. 시리즈 폴더(`src/content/works/01-first-light/`)에 새 jpg 추가 (예: `04.jpg`)
+1. `originals/works/<시리즈>/`에 새 원본 떨구기 (예: `04.jpg`)
 2. 해당 `.md`의 `photos:` 목록에 한 줄 추가:
 
 ```yaml
