@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { ogImageUrl } from '../../lib/og';
 
@@ -35,13 +35,13 @@ const description = first
           <div class="library">
             {first.data.photos.map((p, i) => (
               <figure class="figure">
-                <Image
+                <Picture
                   src={p.src}
                   alt={p.caption ?? first.data.title}
+                  formats={['avif', 'webp']}
                   widths={[800, 1280, 1920, 2560]}
                   sizes="(min-width: 1024px) 60vw, 100vw"
-                  quality={88}
-                  format="webp"
+                  quality={82}
                   loading={i === 0 ? 'eager' : 'lazy'}
                 />
                 {p.caption && <figcaption>{p.caption}</figcaption>}

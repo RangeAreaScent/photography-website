@@ -1,6 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { ogImageUrl } from '../../lib/og';
 
@@ -32,13 +32,13 @@ const hasNote = latest ? (latest.body ?? '').trim().length > 0 : false;
     latest && Content ? (
       <section class="single">
         <figure class="figure">
-          <Image
+          <Picture
             src={latest.data.photo}
             alt={latest.data.caption ?? fmt ?? 'Monthly photograph'}
+            formats={['avif', 'webp']}
             widths={[800, 1280, 1920, 2560]}
             sizes="(min-width: 1024px) 70vw, 100vw"
-            quality={88}
-            format="webp"
+            quality={82}
           />
           <figcaption>
             {latest.data.caption && <p class="title">{latest.data.caption}</p>}
