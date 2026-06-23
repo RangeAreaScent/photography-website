@@ -489,10 +489,13 @@ function renderWorksForm(el, c) {
       </div>
 
       <ul class="photo-list" id="photo-list"></ul>
+
+      <div id="untracked-section"></div>
     </div>
 
     <div class="actions">
       <button class="btn" id="publish-btn">Publish to d612.space</button>
+      <button class="btn btn-secondary" id="refresh-btn">Refresh from disk</button>
       <span class="status" id="status"></span>
     </div>
   `;
@@ -521,7 +524,20 @@ function renderWorksForm(el, c) {
   };
 
   renderPhotoList();
+  renderUntracked();
   bindDropZone(uploadWorksPhotos);
+
+  document.getElementById('refresh-btn').onclick = async () => {
+    if (c.isNew) {
+      setStatus('Save first by publishing — then disk scan works.', 'error');
+      return;
+    }
+    setStatus('Reading disk…');
+    const fresh = await api(`/api/entry/${c.section}/${c.slug}`);
+    c.originals = fresh.originals;
+    renderUntracked();
+    setStatus(`${c.originals.length} file${c.originals.length === 1 ? '' : 's'} in originals/.`, 'success');
+  };
 
   // Sortable on the photo list
   Sortable.create(document.getElementById('photo-list'), {
@@ -536,6 +552,70 @@ function renderWorksForm(el, c) {
   });
 
   document.getElementById('publish-btn').onclick = publish;
+}
+
+function renderUntracked() {
+  const c = state.current;
+  const el = document.getElementById('untracked-section');
+  if (!el || !c || c.section !== 'works') return;
+
+  const inMd = new Set(
+    (c.data.photos ?? []).map((p) => p.src.split('/').pop().toLowerCase()),
+  );
+  const untracked = (c.originals ?? []).filter((f) => {
+    const lower = f.toLowerCase().replace(/\.jpeg$/, '.jpg');
+    return !inMd.has(lower);
+  });
+
+  if (untracked.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 0.5px dashed var(--border);">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+        <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0;">
+          ${untracked.length} in originals/, not yet in series
+        </p>
+        <button class="new-btn" id="add-all-btn">+ add all</button>
+      </div>
+      <ul class="photo-list">
+        ${untracked
+          .map(
+            (f) => `
+          <li class="photo-row" style="grid-template-columns: 110px 1fr auto;">
+            <img class="photo-thumb" src="/thumb/works/${c.slug}/${f}" loading="lazy" />
+            <div class="photo-fields">
+              <p class="filename">${f}</p>
+            </div>
+            <button class="btn btn-secondary" data-add="${f}">+ add</button>
+          </li>`,
+          )
+          .join('')}
+      </ul>
+    </div>
+  `;
+
+  const addToSeries = (filename) => {
+    const cleanName = filename.replace(/\.(jpe?g)$/i, '.jpg');
+    c.data.photos = c.data.photos ?? [];
+    c.data.photos.push({ src: `./${c.slug}/${cleanName}` });
+  };
+
+  el.querySelectorAll('button[data-add]').forEach((btn) => {
+    btn.onclick = (e) => {
+      addToSeries(e.target.dataset.add);
+      renderPhotoList();
+      renderUntracked();
+    };
+  });
+
+  document.getElementById('add-all-btn').onclick = () => {
+    untracked.forEach(addToSeries);
+    renderPhotoList();
+    renderUntracked();
+  };
 }
 
 function renderPhotoList() {
