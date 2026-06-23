@@ -13,6 +13,7 @@ const works = defineCollection({
         .array(
           z.object({
             src: image(),
+            title: z.string().optional(),
             caption: z.string().optional(),
           }),
         )

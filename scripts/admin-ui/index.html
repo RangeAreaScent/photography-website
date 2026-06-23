@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>d612 — admin</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<style>
+  :root {
+    --bg: #eaeeee;
+    --surface: #f4f6f6;
+    --text: #2a2c2c;
+    --text-muted: #6a6e6e;
+    --text-faint: #9aa0a0;
+    --border: #cdd2d2;
+    --accent: #2a2c2c;
+    --danger: #a64b4b;
+    --font: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+  .sidebar {
+    border-right: 0.5px solid var(--border);
+    padding: 1.5rem 1.25rem;
+    overflow-y: auto;
+  }
+  .brand {
+    font-size: 1.1rem;
+    margin: 0 0 1.5rem;
+    font-weight: 500;
+  }
+  .section {
+    margin-bottom: 1.75rem;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  .new-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+  .new-btn:hover { color: var(--text); }
+  .item-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .item {
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text);
+  }
+  .item:hover { background: var(--surface); }
+  .item.active { background: var(--surface); font-weight: 500; }
+  .item .meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 0.1rem;
+  }
+  .main {
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+  }
+  .empty-state {
+    color: var(--text-muted);
+    margin-top: 4rem;
+    text-align: center;
+  }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0 0 1.5rem;
+  }
+  .field {
+    margin-bottom: 1rem;
+  }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+  input[type="text"], input[type="number"], input[type="date"], textarea {
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+    font: inherit;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--text);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 5rem;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 120px 80px;
+    gap: 0.75rem;
+  }
+  .row.row-2 {
+    grid-template-columns: 1fr 120px;
+  }
+
+  .photos-section {
+    margin-top: 2rem;
+    border-top: 0.5px solid var(--border);
+    padding-top: 1.5rem;
+  }
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 120ms, background 120ms;
+    margin-bottom: 1.5rem;
+  }
+  .drop-zone.drag-over {
+    border-color: var(--text);
+    background: var(--surface);
+  }
+  .drop-zone input { display: none; }
+  .photo-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .photo-row {
+    display: grid;
+    grid-template-columns: 24px 110px 1fr auto;
+    gap: 0.875rem;
+    align-items: start;
+    padding: 0.875rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+  }
+  .drag-handle {
+    cursor: grab;
+    color: var(--text-faint);
+    user-select: none;
+    padding-top: 0.5rem;
+    text-align: center;
+  }
+  .drag-handle:hover { color: var(--text-muted); }
+  .photo-row.sortable-ghost {
+    opacity: 0.4;
+  }
+  .photo-thumb {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    background: var(--bg);
+    border-radius: 4px;
+  }
+  .photo-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .photo-fields input {
+    padding: 0.35rem 0.5rem;
+  }
+  .photo-fields .filename {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin: 0 0 0.1rem;
+    font-family: monospace;
+  }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    font: inherit;
+    padding: 0.5rem;
+    font-size: 1.1rem;
+  }
+  .remove-btn:hover { color: var(--danger); }
+
+  .actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .btn {
+    padding: 0.625rem 1.25rem;
+    font: inherit;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 0.5px solid var(--border);
+  }
+  .status {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+  .status.error { color: var(--danger); }
+  .status.success { color: #2c7a4f; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1 class="brand">d612 — admin</h1>
+
+    <div class="section">
+      <div class="section-head">
+        <h2 class="section-title">Monthly</h2>
+        <button class="new-btn" id="new-monthly">+ new</button>
+      </div>
+      <ul class="item-list" id="monthly-list"></ul>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2 class="section-title">Works</h2>
+        <button class="new-btn" id="new-works">+ new</button>
+      </div>
+      <ul class="item-list" id="works-list"></ul>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <p class="empty-state">Select an entry on the left, or create a new one.</p>
+  </main>
+</div>
+
+<script>
+const state = {
+  works: [],
+  monthly: [],
+  current: null, // { section, slug, data, content, originals, isNew }
+};
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function loadState() {
+  const s = await api('/api/state');
+  state.works = s.works;
+  state.monthly = s.monthly;
+  renderSidebar();
+}
+
+function renderSidebar() {
+  const mEl = document.getElementById('monthly-list');
+  mEl.innerHTML = '';
+  for (const m of state.monthly) {
+    const li = document.createElement('li');
+    li.className = 'item' + (state.current?.section === 'monthly' && state.current?.slug === m.slug ? ' active' : '');
+    li.innerHTML = `${m.slug}<span class="meta">${m.caption ?? ''}</span>`;
+    li.onclick = () => loadEntry('monthly', m.slug);
+    mEl.appendChild(li);
+  }
+
+  const wEl = document.getElementById('works-list');
+  wEl.innerHTML = '';
+  for (const s of state.works) {
+    const li = document.createElement('li');
+    li.className = 'item' + (state.current?.section === 'works' && state.current?.slug === s.slug ? ' active' : '');
+    li.innerHTML = `${s.title}<span class="meta">${s.slug} · ${s.photoCount} photo${s.photoCount === 1 ? '' : 's'}</span>`;
+    li.onclick = () => loadEntry('works', s.slug);
+    wEl.appendChild(li);
+  }
+}
+
+async function loadEntry(section, slug) {
+  const entry = await api(`/api/entry/${section}/${slug}`);
+  state.current = { section, slug, ...entry, isNew: false };
+  renderMain();
+  renderSidebar();
+}
+
+function newMonthly() {
+  const today = new Date().toISOString().slice(0, 10);
+  const slug = today.slice(0, 7);
+  state.current = {
+    section: 'monthly',
+    slug,
+    data: {
+      date: today,
+      photo: `./${slug}.jpg`,
+      caption: '',
+    },
+    content: '',
+    originals: [],
+    isNew: true,
+  };
+  renderMain();
+  renderSidebar();
+}
+
+function newWorks() {
+  const order = (Math.max(0, ...state.works.map((s) => s.order ?? 0)) || 0) + 1;
+  state.current = {
+    section: 'works',
+    slug: '',
+    data: {
+      title: '',
+      year: new Date().getFullYear(),
+      order,
+      intro: '',
+      photos: [],
+    },
+    content: '',
+    originals: [],
+    isNew: true,
+  };
+  renderMain();
+  renderSidebar();
+}
+
+function renderMain() {
+  const el = document.getElementById('main');
+  el.innerHTML = '';
+
+  if (!state.current) {
+    el.innerHTML = '<p class="empty-state">Select an entry on the left, or create a new one.</p>';
+    return;
+  }
+
+  const c = state.current;
+
+  if (c.section === 'monthly') {
+    renderMonthlyForm(el, c);
+  } else {
+    renderWorksForm(el, c);
+  }
+}
+
+function renderMonthlyForm(el, c) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>${c.isNew ? 'New monthly entry' : `Edit ${c.slug}`}</h2>
+
+    <div class="row row-2">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="f-date" value="${c.data.date ? new Date(c.data.date).toISOString().slice(0,10) : ''}" />
+      </div>
+      <div class="field">
+        <label>Slug (auto from date)</label>
+        <input type="text" id="f-slug" value="${c.slug}" ${c.isNew ? '' : 'readonly'} />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Title (e.g. "Raining forest")</label>
+      <input type="text" id="f-caption" value="${escapeAttr(c.data.caption ?? '')}" />
+    </div>
+
+    <div class="field">
+      <label>Note (markdown — appears below date)</label>
+      <textarea id="f-content" rows="5">${escapeHtml(c.content ?? '')}</textarea>
+    </div>
+
+    <div class="photos-section">
+      <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">Photo</label>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" accept="image/jpeg,image/jpg" id="file-input" />
+        ${c.data.photo && !c.isNew ? `Current: <code>${c.data.photo}</code> — drop to replace` : 'Drop a JPEG here, or click to select'}
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="publish-btn">Publish to d612.space</button>
+      <span class="status" id="status"></span>
+    </div>
+  `;
+  el.appendChild(wrap);
+
+  // Bindings
+  document.getElementById('f-date').oninput = (e) => {
+    c.data.date = e.target.value;
+    const slug = e.target.value.slice(0, 7);
+    c.slug = slug;
+    c.data.photo = `./${slug}.jpg`;
+    document.getElementById('f-slug').value = slug;
+  };
+  document.getElementById('f-caption').oninput = (e) => {
+    c.data.caption = e.target.value || undefined;
+  };
+  document.getElementById('f-content').oninput = (e) => {
+    c.content = e.target.value;
+  };
+
+  bindDropZone(uploadMonthlyPhoto);
+  document.getElementById('publish-btn').onclick = publish;
+}
+
+function renderWorksForm(el, c) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>${c.isNew ? 'New series' : `Edit ${c.slug}`}</h2>
+
+    <div class="row">
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="f-title" value="${escapeAttr(c.data.title ?? '')}" />
+      </div>
+      <div class="field">
+        <label>Year</label>
+        <input type="number" id="f-year" value="${c.data.year ?? new Date().getFullYear()}" />
+      </div>
+      <div class="field">
+        <label>Order</label>
+        <input type="number" id="f-order" value="${c.data.order ?? 1}" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Slug (lowercase, kebab-case — becomes part of URL)</label>
+      <input type="text" id="f-slug" value="${c.slug}" ${c.isNew ? '' : 'readonly'} placeholder="e.g. 04-some-series" />
+    </div>
+
+    <div class="field">
+      <label>Intro (one sentence under the series title — optional)</label>
+      <input type="text" id="f-intro" value="${escapeAttr(c.data.intro ?? '')}" />
+    </div>
+
+    <div class="photos-section">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+        <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 0;">Photos (drag handles to reorder)</label>
+        <span class="status" style="font-size: 0.75rem;">${(c.data.photos ?? []).length} in series</span>
+      </div>
+
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" accept="image/jpeg,image/jpg" id="file-input" multiple />
+        Drop JPEGs here, or click to select
+      </div>
+
+      <ul class="photo-list" id="photo-list"></ul>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="publish-btn">Publish to d612.space</button>
+      <span class="status" id="status"></span>
+    </div>
+  `;
+  el.appendChild(wrap);
+
+  // Bindings
+  document.getElementById('f-title').oninput = (e) => {
+    c.data.title = e.target.value;
+    if (c.isNew && !c.slug) {
+      const slug = `${String(c.data.order ?? 1).padStart(2, '0')}-${slugify(e.target.value)}`;
+      c.slug = slug;
+      document.getElementById('f-slug').value = slug;
+    }
+  };
+  document.getElementById('f-year').oninput = (e) => {
+    c.data.year = Number(e.target.value);
+  };
+  document.getElementById('f-order').oninput = (e) => {
+    c.data.order = Number(e.target.value);
+  };
+  document.getElementById('f-slug').oninput = (e) => {
+    if (c.isNew) c.slug = e.target.value;
+  };
+  document.getElementById('f-intro').oninput = (e) => {
+    c.data.intro = e.target.value || undefined;
+  };
+
+  renderPhotoList();
+  bindDropZone(uploadWorksPhotos);
+
+  // Sortable on the photo list
+  Sortable.create(document.getElementById('photo-list'), {
+    handle: '.drag-handle',
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    onEnd: (e) => {
+      const photos = c.data.photos;
+      const [moved] = photos.splice(e.oldIndex, 1);
+      photos.splice(e.newIndex, 0, moved);
+    },
+  });
+
+  document.getElementById('publish-btn').onclick = publish;
+}
+
+function renderPhotoList() {
+  const c = state.current;
+  const list = document.getElementById('photo-list');
+  list.innerHTML = '';
+  for (let i = 0; i < (c.data.photos ?? []).length; i++) {
+    const p = c.data.photos[i];
+    const li = document.createElement('li');
+    li.className = 'photo-row';
+    const filename = p.src.split('/').pop();
+    li.innerHTML = `
+      <div class="drag-handle">⋮⋮</div>
+      <img class="photo-thumb" src="/thumb/works/${c.slug}/${filename}" loading="lazy" />
+      <div class="photo-fields">
+        <p class="filename">${filename}</p>
+        <input type="text" placeholder="Title (optional)" value="${escapeAttr(p.title ?? '')}" data-field="title" data-idx="${i}" />
+        <input type="text" placeholder="Caption (optional)" value="${escapeAttr(p.caption ?? '')}" data-field="caption" data-idx="${i}" />
+      </div>
+      <button class="remove-btn" data-idx="${i}" title="Remove from series">×</button>
+    `;
+    list.appendChild(li);
+  }
+
+  list.querySelectorAll('input[data-field]').forEach((inp) => {
+    inp.oninput = (e) => {
+      const i = Number(e.target.dataset.idx);
+      const field = e.target.dataset.field;
+      const v = e.target.value || undefined;
+      c.data.photos[i][field] = v;
+    };
+  });
+
+  list.querySelectorAll('.remove-btn').forEach((btn) => {
+    btn.onclick = (e) => {
+      const i = Number(e.target.dataset.idx);
+      if (!confirm('Remove this photo from the series?')) return;
+      c.data.photos.splice(i, 1);
+      renderPhotoList();
+    };
+  });
+}
+
+function bindDropZone(uploadFn) {
+  const zone = document.getElementById('drop-zone');
+  const input = document.getElementById('file-input');
+  zone.onclick = () => input.click();
+  input.onchange = () => uploadFn([...input.files]);
+  zone.ondragover = (e) => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  };
+  zone.ondragleave = () => zone.classList.remove('drag-over');
+  zone.ondrop = (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    uploadFn([...e.dataTransfer.files]);
+  };
+}
+
+async function uploadMonthlyPhoto(files) {
+  const c = state.current;
+  if (!c.slug) {
+    setStatus('Set date first', 'error');
+    return;
+  }
+  if (files.length === 0) return;
+  // Use first file only, rename to slug
+  const file = files[0];
+  const renamed = new File([file], `${c.slug}.jpg`, { type: file.type });
+  const fd = new FormData();
+  fd.append('section', 'monthly');
+  fd.append('slug', c.slug);
+  fd.append('photos', renamed);
+  setStatus('Uploading…');
+  await api('/api/upload', { method: 'POST', body: fd });
+  setStatus('Uploaded.', 'success');
+  // Refresh
+  renderMain();
+}
+
+async function uploadWorksPhotos(files) {
+  const c = state.current;
+  if (!c.slug) {
+    setStatus('Set slug first', 'error');
+    return;
+  }
+  if (files.length === 0) return;
+  const fd = new FormData();
+  fd.append('section', 'works');
+  fd.append('slug', c.slug);
+  for (const f of files) fd.append('photos', f);
+  setStatus(`Uploading ${files.length}…`);
+  const { filenames } = await api('/api/upload', { method: 'POST', body: fd });
+  c.data.photos = c.data.photos ?? [];
+  for (const fn of filenames) {
+    const cleanName = fn.replace(/\.(JPE?G)$/i, '.jpg');
+    c.data.photos.push({ src: `./${c.slug}/${cleanName}` });
+  }
+  setStatus(`Uploaded ${filenames.length}.`, 'success');
+  renderPhotoList();
+}
+
+async function publish() {
+  const c = state.current;
+  const btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  setStatus('Processing photos and pushing…');
+  try {
+    await api('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        section: c.section,
+        slug: c.slug,
+        data: c.data,
+        content: c.content,
+      }),
+    });
+    setStatus('✓ Pushed. Vercel will deploy in ~1 min.', 'success');
+    c.isNew = false;
+    await loadState();
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function setStatus(text, kind = '') {
+  const el = document.getElementById('status');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'status ' + kind;
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+function escapeHtml(s) {
+  return String(s).replace(/</g, '&lt;');
+}
+function slugify(s) {
+  return String(s)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+document.getElementById('new-monthly').onclick = newMonthly;
+document.getElementById('new-works').onclick = newWorks;
+
+loadState();
+</script>
+</body>
+</html>

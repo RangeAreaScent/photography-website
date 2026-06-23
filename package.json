@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "prepare-photos": "node scripts/prepare-photos.mjs",
+    "admin": "node scripts/admin.mjs",
     "predev": "npm run prepare-photos",
     "prebuild": "npm run prepare-photos",
     "dev": "astro dev",
@@ -16,5 +17,11 @@
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^5.14.0",
     "sharp": "^0.35.2"
+  },
+  "devDependencies": {
+    "express": "^5.2.1",
+    "gray-matter": "^4.0.3",
+    "multer": "^2.2.0",
+    "open": "^11.0.0"
   }
 }

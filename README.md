@@ -23,6 +23,18 @@ npm run dev
 
 종료: Terminal 창 닫기 또는 Ctrl+C.
 
+### Admin GUI로 사진 올리기 (가장 쉬움)
+
+Finder에서 `admin.command` 더블클릭 → http://localhost:4322 자동 오픈.
+
+- 좌측 사이드바: 기존 Monthly / Works 목록 + "+ new" 버튼
+- 새 시리즈/월간 만들거나, 기존 것 클릭해서 편집
+- 사진을 드롭존에 드래그-드롭 (또는 클릭해서 선택)
+- Works 사진은 **드래그 핸들(⋮⋮)로 순서 변경**, 각 사진에 **타이틀·캡션** 입력 가능
+- **Publish to d612.space** 버튼 → 변환 → git commit → push → Vercel 자동 배포
+
+종료: Terminal 창 닫기.
+
 ### 배포
 
 ```bash

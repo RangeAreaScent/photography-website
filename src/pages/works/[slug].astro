@@ -50,7 +50,12 @@ const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
               quality={82}
               loading={i === 0 ? 'eager' : 'lazy'}
             />
-            {p.caption && <figcaption>{p.caption}</figcaption>}
+            {(p.title || p.caption) && (
+              <figcaption>
+                {p.title && <span class="ph-title">{p.title}</span>}
+                {p.caption && <span class="ph-caption">{p.caption}</span>}
+              </figcaption>
+            )}
           </figure>
         ))}
       </div>
@@ -113,8 +118,19 @@ const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
   .figure figcaption {
     margin-top: 0.875rem;
     text-align: left;
-    color: var(--text-muted);
     font-size: 0.9375rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .ph-title {
+    color: var(--text);
+  }
+
+  .ph-caption {
+    color: var(--text-muted);
+    font-size: 0.875rem;
   }
 
   .empty {
