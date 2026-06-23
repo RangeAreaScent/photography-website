@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawn, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import open from 'open';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +18,7 @@ const PORT = 4322;
 
 const ORIGINALS = path.join(ROOT, 'originals');
 const CONTENT = path.join(ROOT, 'src/content');
+const CANDIDATES_DIR = '_candidates';
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -32,6 +33,10 @@ async function exists(p) {
   } catch {
     return false;
   }
+}
+
+function cleanFilename(name) {
+  return name.toLowerCase().replace(/\.(jpe?g)$/i, '.jpg');
 }
 
 async function listWorks() {
@@ -85,11 +90,40 @@ async function listOriginalFiles(section, slug) {
     section === 'monthly'
       ? path.join(ORIGINALS, 'monthly')
       : path.join(ORIGINALS, 'works', slug);
-  if (!(await exists(dir))) return [];
+  const result = { top: [], candidates: [] };
+  if (!(await exists(dir))) return result;
+
   const entries = await fs.readdir(dir, { withFileTypes: true });
-  return entries
-    .filter((e) => e.isFile() && /\.(jpe?g)$/i.test(e.name))
-    .map((e) => e.name);
+  for (const e of entries) {
+    if (e.isFile() && /\.(jpe?g)$/i.test(e.name)) result.top.push(e.name);
+  }
+  const candDir = path.join(dir, CANDIDATES_DIR);
+  if (await exists(candDir)) {
+    const cands = await fs.readdir(candDir, { withFileTypes: true });
+    for (const e of cands) {
+      if (e.isFile() && /\.(jpe?g)$/i.test(e.name)) result.candidates.push(e.name);
+    }
+  }
+  return result;
+}
+
+// Rewrites .md photo src after a rename so the .md and disk stay in sync.
+async function renameInMarkdown(section, slug, oldName, newName) {
+  if (section !== 'works') return;
+  const mdPath = path.join(CONTENT, 'works', slug + '.md');
+  if (!(await exists(mdPath))) return;
+  const raw = await fs.readFile(mdPath, 'utf-8');
+  const parsed = matter(raw);
+  let touched = false;
+  if (Array.isArray(parsed.data.photos)) {
+    for (const p of parsed.data.photos) {
+      if (typeof p.src === 'string' && p.src.endsWith('/' + oldName)) {
+        p.src = p.src.replace(oldName, newName);
+        touched = true;
+      }
+    }
+  }
+  if (touched) await fs.writeFile(mdPath, matter.stringify(parsed.content, parsed.data));
 }
 
 // ---------- routes ----------
@@ -107,19 +141,16 @@ app.get('/api/entry/:section/:slug', async (req, res) => {
   try {
     const { section, slug } = req.params;
     const entry = await loadEntry(section, slug);
-    const originals = await listOriginalFiles(section, slug);
-    res.json({ ...entry, originals });
+    const { top, candidates } = await listOriginalFiles(section, slug);
+    res.json({ ...entry, originals: top, candidates });
   } catch (e) {
     res.status(404).json({ error: e.message });
   }
 });
 
-// Suppress favicon 404 noise (no favicon for local admin)
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Thumbnail proxy — resize on demand. Tries originals/ first, falls
-// back to the optimized copy in src/content/ (handles placeholder
-// photos that never had originals).
+// Thumbnail proxy — tries originals/ first, falls back to src/content/.
 app.get(/^\/thumb\/(.+)$/, async (req, res) => {
   const rel = req.params[0];
   const candidates = [path.join(ORIGINALS, rel), path.join(CONTENT, rel)];
@@ -133,13 +164,13 @@ app.get(/^\/thumb\/(.+)$/, async (req, res) => {
       res.type('image/jpeg').send(buffer);
       return;
     } catch {
-      // try next candidate
+      // try next
     }
   }
   res.status(404).end();
 });
 
-// Upload photos
+// Upload photos to originals/[section]/[slug]/ (top level).
 const upload = multer({
   storage: multer.diskStorage({
     destination: async (req, file, cb) => {
@@ -151,10 +182,7 @@ const upload = multer({
       await fs.mkdir(dir, { recursive: true });
       cb(null, dir);
     },
-    filename: (req, file, cb) => {
-      const name = file.originalname.replace(/\.(jpe?g)$/i, '.jpg');
-      cb(null, name);
-    },
+    filename: (req, file, cb) => cb(null, cleanFilename(file.originalname)),
   }),
 });
 
@@ -163,7 +191,117 @@ app.post('/api/upload', upload.array('photos'), (req, res) => {
   res.json({ filenames });
 });
 
-// Publish
+// Rename a photo file. Renames in originals/ AND src/content/, and rewrites
+// the .md src reference so the page keeps pointing at the new name.
+app.post('/api/rename-file', async (req, res) => {
+  try {
+    const { section, slug, oldName, newName } = req.body;
+    const clean = cleanFilename(newName);
+    if (!/^[a-z0-9._-]+\.jpg$/.test(clean)) {
+      return res.status(400).json({ error: 'Use lowercase letters, digits, dot, dash, underscore.' });
+    }
+    if (clean === oldName) return res.json({ ok: true, newName: clean });
+
+    const dirs =
+      section === 'monthly'
+        ? [path.join(ORIGINALS, 'monthly'), path.join(CONTENT, 'monthly')]
+        : [path.join(ORIGINALS, 'works', slug), path.join(CONTENT, 'works', slug)];
+
+    // Confirm new name doesn't already exist
+    for (const d of dirs) {
+      if (await exists(path.join(d, clean))) {
+        return res.status(409).json({ error: 'A file with that name already exists.' });
+      }
+    }
+
+    for (const d of dirs) {
+      const oldP = path.join(d, oldName);
+      const newP = path.join(d, clean);
+      try {
+        await fs.rename(oldP, newP);
+      } catch (e) {
+        if (e.code !== 'ENOENT') throw e;
+      }
+    }
+
+    await renameInMarkdown(section, slug, oldName, clean);
+
+    res.json({ ok: true, newName: clean });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Move a photo between top-level (series picks) and _candidates/ (not used).
+// to: 'series' or 'candidates'.
+app.post('/api/move-file', async (req, res) => {
+  try {
+    const { section, slug, filename, to } = req.body;
+    if (section !== 'works') return res.status(400).json({ error: 'Works only.' });
+    const dir = path.join(ORIGINALS, 'works', slug);
+    const candDir = path.join(dir, CANDIDATES_DIR);
+    await fs.mkdir(candDir, { recursive: true });
+
+    const src = to === 'series' ? path.join(candDir, filename) : path.join(dir, filename);
+    const dest = to === 'series' ? path.join(dir, filename) : path.join(candDir, filename);
+
+    await fs.rename(src, dest);
+
+    // If demoting to candidates, also drop the processed copy in src/content/
+    // (it'll get regenerated if the photo is promoted back later).
+    if (to === 'candidates') {
+      const processed = path.join(CONTENT, 'works', slug, cleanFilename(filename));
+      try {
+        await fs.unlink(processed);
+      } catch {}
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Permanently delete a candidate (file in _candidates/).
+app.post('/api/delete-candidate', async (req, res) => {
+  try {
+    const { section, slug, filename } = req.body;
+    if (section !== 'works') return res.status(400).json({ error: 'Works only.' });
+    const candPath = path.join(ORIGINALS, 'works', slug, CANDIDATES_DIR, filename);
+    await fs.unlink(candPath);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Delete an entire works series.
+// Removes .md and src/content/works/[slug]/. Leaves originals/ alone for safety.
+app.delete('/api/series/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const mdPath = path.join(CONTENT, 'works', slug + '.md');
+    const contentDir = path.join(CONTENT, 'works', slug);
+    await fs.unlink(mdPath);
+    try {
+      await fs.rm(contentDir, { recursive: true, force: true });
+    } catch {}
+
+    execSync('git add -A', { cwd: ROOT });
+    try {
+      execSync(`git commit -m "works: delete ${slug}"`, { cwd: ROOT });
+    } catch (e) {
+      if (!/nothing to commit/.test(String(e.stdout) + String(e.stderr))) throw e;
+    }
+    execSync('git push', { cwd: ROOT });
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Publish (writes .md, runs prepare-photos, commits, pushes).
 app.post('/api/publish', async (req, res) => {
   try {
     const { section, slug, data, content = '' } = req.body;
@@ -177,16 +315,13 @@ app.post('/api/publish', async (req, res) => {
     const md = matter.stringify(content, data);
     await fs.writeFile(filePath, md);
 
-    // Run prepare-photos
     execSync('npm run prepare-photos', { cwd: ROOT, stdio: 'inherit' });
 
-    // Git
     execSync('git add -A', { cwd: ROOT });
     const subject = section === 'monthly' ? `monthly: ${slug}` : `works: ${slug}`;
     try {
       execSync(`git commit -m "${subject}"`, { cwd: ROOT });
     } catch (e) {
-      // Nothing to commit is fine
       if (!/nothing to commit/.test(String(e.stdout) + String(e.stderr))) throw e;
     }
     execSync('git push', { cwd: ROOT });
@@ -204,6 +339,6 @@ app.listen(PORT, async () => {
   try {
     await open(`http://localhost:${PORT}`);
   } catch {
-    // ignore if browser open fails
+    // ignore
   }
 });

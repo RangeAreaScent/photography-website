@@ -9,6 +9,7 @@
   :root {
     --bg: #eaeeee;
     --surface: #f4f6f6;
+    --surface-2: #ecf0f0;
     --text: #2a2c2c;
     --text-muted: #6a6e6e;
     --text-faint: #9aa0a0;
@@ -36,220 +37,157 @@
     padding: 1.5rem 1.25rem;
     overflow-y: auto;
   }
-  .brand {
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem;
-    font-weight: 500;
-  }
-  .section {
-    margin-bottom: 1.75rem;
-  }
+  .brand { font-size: 1.1rem; margin: 0 0 1.5rem; font-weight: 500; }
+  .section { margin-bottom: 1.75rem; }
   .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    display: flex; justify-content: space-between; align-items: baseline;
     margin-bottom: 0.5rem;
   }
   .section-title {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); margin: 0;
   }
   .new-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font: inherit;
-    padding: 0;
-    font-size: 0.875rem;
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font: inherit; padding: 0; font-size: 0.875rem;
   }
   .new-btn:hover { color: var(--text); }
-  .item-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
+  .item-list { list-style: none; margin: 0; padding: 0; }
   .item {
-    padding: 0.35rem 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text);
+    padding: 0.35rem 0.5rem; border-radius: 4px; cursor: pointer;
+    font-size: 0.875rem; color: var(--text);
   }
   .item:hover { background: var(--surface); }
   .item.active { background: var(--surface); font-weight: 500; }
   .item .meta {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    display: block;
-    margin-top: 0.1rem;
+    font-size: 0.75rem; color: var(--text-muted);
+    display: block; margin-top: 0.1rem;
   }
-  .main {
-    padding: 2rem 2.5rem;
-    overflow-y: auto;
-  }
-  .empty-state {
-    color: var(--text-muted);
-    margin-top: 4rem;
-    text-align: center;
-  }
-  h2 {
-    font-size: 1.25rem;
-    font-weight: 500;
-    margin: 0 0 1.5rem;
-  }
-  .field {
-    margin-bottom: 1rem;
-  }
+  .main { padding: 2rem 2.5rem; overflow-y: auto; }
+  .empty-state { color: var(--text-muted); margin-top: 4rem; text-align: center; }
+  h2 { font-size: 1.25rem; font-weight: 500; margin: 0 0 1.5rem; }
+  .field { margin-bottom: 1rem; }
   .field label {
-    display: block;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin-bottom: 0.3rem;
+    display: block; font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.3rem;
   }
   input[type="text"], input[type="number"], input[type="date"], textarea {
-    width: 100%;
-    padding: 0.5rem 0.625rem;
-    font: inherit;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
+    width: 100%; padding: 0.5rem 0.625rem; font: inherit;
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 4px; color: var(--text);
   }
-  input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--text);
-  }
-  textarea {
-    resize: vertical;
-    min-height: 5rem;
-  }
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 120px 80px;
-    gap: 0.75rem;
-  }
-  .row.row-2 {
-    grid-template-columns: 1fr 120px;
-  }
+  input:focus, textarea:focus { outline: none; border-color: var(--text); }
+  textarea { resize: vertical; min-height: 5rem; }
+  .row { display: grid; grid-template-columns: 1fr 120px 80px; gap: 0.75rem; }
+  .row.row-2 { grid-template-columns: 1fr 120px; }
 
   .photos-section {
-    margin-top: 2rem;
-    border-top: 0.5px solid var(--border);
-    padding-top: 1.5rem;
+    margin-top: 2rem; border-top: 0.5px solid var(--border); padding-top: 1.5rem;
+  }
+  .photos-subsection { margin-top: 1.5rem; }
+  .photos-subsection-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 0.5rem;
+    padding-top: 1rem; border-top: 0.5px dashed var(--border);
+  }
+  .photos-subsection-head:first-child { padding-top: 0; border-top: none; }
+  .photos-subsection-title {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); margin: 0;
   }
   .drop-zone {
-    border: 1.5px dashed var(--border);
-    border-radius: 6px;
-    padding: 2rem;
-    text-align: center;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: border-color 120ms, background 120ms;
+    border: 1.5px dashed var(--border); border-radius: 6px;
+    padding: 2rem; text-align: center; color: var(--text-muted);
+    cursor: pointer; transition: border-color 120ms, background 120ms;
     margin-bottom: 1.5rem;
   }
-  .drop-zone.drag-over {
-    border-color: var(--text);
-    background: var(--surface);
-  }
+  .drop-zone.drag-over { border-color: var(--text); background: var(--surface); }
   .drop-zone input { display: none; }
   .photo-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.75rem;
   }
   .photo-row {
-    display: grid;
+    display: grid; gap: 0.875rem; align-items: start;
+    padding: 0.75rem; background: var(--surface);
+    border: 0.5px solid var(--border); border-radius: 6px;
     grid-template-columns: 24px 110px 1fr auto;
-    gap: 0.875rem;
-    align-items: start;
-    padding: 0.875rem;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: 6px;
   }
+  .photo-row.candidate { background: var(--surface-2); }
+  .photo-row.no-handle { grid-template-columns: 110px 1fr auto; }
   .drag-handle {
-    cursor: grab;
-    color: var(--text-faint);
-    user-select: none;
-    padding-top: 0.5rem;
-    text-align: center;
+    cursor: grab; color: var(--text-faint); user-select: none;
+    padding-top: 0.5rem; text-align: center;
   }
   .drag-handle:hover { color: var(--text-muted); }
-  .photo-row.sortable-ghost {
-    opacity: 0.4;
-  }
+  .photo-row.sortable-ghost { opacity: 0.4; }
   .photo-thumb {
-    width: 110px;
-    height: 110px;
-    object-fit: cover;
-    background: var(--bg);
-    border-radius: 4px;
+    width: 110px; height: 110px; object-fit: cover;
+    background: var(--bg); border-radius: 4px;
   }
-  .photo-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .photo-fields input {
-    padding: 0.35rem 0.5rem;
-  }
+  .photo-fields { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+  .photo-fields input { padding: 0.35rem 0.5rem; }
   .photo-fields .filename {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin: 0 0 0.1rem;
-    font-family: monospace;
+    font-size: 0.75rem; color: var(--text-muted);
+    margin: 0; font-family: monospace; cursor: pointer;
+    padding: 0.15rem 0.3rem; margin-left: -0.3rem;
+    border-radius: 3px; transition: background 120ms;
+    align-self: flex-start;
   }
-  .remove-btn {
-    background: none;
-    border: none;
-    color: var(--text-faint);
-    cursor: pointer;
-    font: inherit;
-    padding: 0.5rem;
-    font-size: 1.1rem;
+  .photo-fields .filename:hover { background: var(--bg); color: var(--text); }
+  .photo-fields .filename::after {
+    content: ' ✎'; font-family: var(--font);
+    opacity: 0; transition: opacity 120ms; font-size: 0.7rem;
   }
-  .remove-btn:hover { color: var(--danger); }
+  .photo-fields .filename:hover::after { opacity: 0.6; }
+  .filename-edit {
+    font: inherit; font-size: 0.75rem; font-family: monospace;
+    padding: 0.2rem 0.3rem !important; width: auto !important;
+    background: white !important; border: 0.5px solid var(--text) !important;
+    align-self: flex-start;
+  }
+  .photo-actions { display: flex; flex-direction: column; gap: 0.3rem; }
+  .icon-btn {
+    background: none; border: none; color: var(--text-faint);
+    cursor: pointer; font: inherit; padding: 0.25rem 0.4rem;
+    font-size: 0.95rem; border-radius: 3px; line-height: 1;
+  }
+  .icon-btn:hover { background: var(--bg); color: var(--text); }
+  .icon-btn.danger:hover { color: var(--danger); }
+  .small-btn {
+    background: none; border: 0.5px solid var(--border); color: var(--text-muted);
+    cursor: pointer; font: inherit; padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem; border-radius: 4px; line-height: 1.2;
+    white-space: nowrap;
+  }
+  .small-btn:hover { color: var(--text); border-color: var(--text); }
+  .small-btn.danger:hover { color: var(--danger); border-color: var(--danger); }
 
   .actions {
-    margin-top: 2rem;
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    padding-top: 1.5rem;
-    border-top: 0.5px solid var(--border);
+    margin-top: 2rem; display: flex; gap: 0.75rem; align-items: center;
+    padding-top: 1.5rem; border-top: 0.5px solid var(--border);
   }
   .btn {
-    padding: 0.625rem 1.25rem;
-    font: inherit;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    padding: 0.625rem 1.25rem; font: inherit;
+    background: var(--accent); color: white; border: none;
+    border-radius: 4px; cursor: pointer;
   }
   .btn:hover { opacity: 0.85; }
-  .btn:disabled {
-    background: var(--border);
-    cursor: not-allowed;
+  .btn:disabled { background: var(--border); cursor: not-allowed; }
+  .btn-secondary { background: transparent; color: var(--text); border: 0.5px solid var(--border); }
+  .btn-danger { background: var(--danger); color: white; }
+
+  .danger-zone {
+    margin-top: 3rem; padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
   }
-  .btn-secondary {
-    background: transparent;
-    color: var(--text);
-    border: 0.5px solid var(--border);
+  .danger-zone-title {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--danger); margin: 0 0 0.5rem;
   }
-  .status {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-  }
+  .danger-zone-desc { color: var(--text-muted); margin: 0 0 0.75rem; font-size: 0.8125rem; }
+
+  .status { color: var(--text-muted); font-size: 0.875rem; }
   .status.error { color: var(--danger); }
   .status.success { color: #2c7a4f; }
 </style>
@@ -285,13 +223,20 @@
 const state = {
   works: [],
   monthly: [],
-  current: null, // { section, slug, data, content, originals, isNew }
+  current: null,
 };
 
 async function api(path, opts = {}) {
   const res = await fetch(path, opts);
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const text = await res.text();
+    try { throw new Error(JSON.parse(text).error || text); }
+    catch { throw new Error(text); }
+  }
   return res.json();
+}
+function apiJson(path, method, body) {
+  return api(path, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 }
 
 async function loadState() {
@@ -330,19 +275,28 @@ async function loadEntry(section, slug) {
   renderSidebar();
 }
 
+async function refreshEntry() {
+  if (!state.current || state.current.isNew) return;
+  const { section, slug, data, content } = state.current;
+  const fresh = await api(`/api/entry/${section}/${slug}`);
+  // Keep unsaved local data, just refresh originals + candidates list
+  state.current.originals = fresh.originals;
+  state.current.candidates = fresh.candidates;
+  renderPhotoList();
+  renderUntracked();
+  renderCandidates();
+}
+
 function newMonthly() {
   const today = new Date().toISOString().slice(0, 10);
   const slug = today.slice(0, 7);
   state.current = {
     section: 'monthly',
     slug,
-    data: {
-      date: today,
-      photo: `./${slug}.jpg`,
-      caption: '',
-    },
+    data: { date: today, photo: `./${slug}.jpg`, caption: '' },
     content: '',
     originals: [],
+    candidates: [],
     isNew: true,
   };
   renderMain();
@@ -354,15 +308,10 @@ function newWorks() {
   state.current = {
     section: 'works',
     slug: '',
-    data: {
-      title: '',
-      year: new Date().getFullYear(),
-      order,
-      intro: '',
-      photos: [],
-    },
+    data: { title: '', year: new Date().getFullYear(), order, intro: '', photos: [] },
     content: '',
     originals: [],
+    candidates: [],
     isNew: true,
   };
   renderMain();
@@ -372,19 +321,12 @@ function newWorks() {
 function renderMain() {
   const el = document.getElementById('main');
   el.innerHTML = '';
-
   if (!state.current) {
     el.innerHTML = '<p class="empty-state">Select an entry on the left, or create a new one.</p>';
     return;
   }
-
-  const c = state.current;
-
-  if (c.section === 'monthly') {
-    renderMonthlyForm(el, c);
-  } else {
-    renderWorksForm(el, c);
-  }
+  if (state.current.section === 'monthly') renderMonthlyForm(el, state.current);
+  else renderWorksForm(el, state.current);
 }
 
 function renderMonthlyForm(el, c) {
@@ -428,7 +370,6 @@ function renderMonthlyForm(el, c) {
   `;
   el.appendChild(wrap);
 
-  // Bindings
   document.getElementById('f-date').oninput = (e) => {
     c.data.date = e.target.value;
     const slug = e.target.value.slice(0, 7);
@@ -439,9 +380,7 @@ function renderMonthlyForm(el, c) {
   document.getElementById('f-caption').oninput = (e) => {
     c.data.caption = e.target.value || undefined;
   };
-  document.getElementById('f-content').oninput = (e) => {
-    c.content = e.target.value;
-  };
+  document.getElementById('f-content').oninput = (e) => { c.content = e.target.value; };
 
   bindDropZone(uploadMonthlyPhoto);
   document.getElementById('publish-btn').onclick = publish;
@@ -478,9 +417,9 @@ function renderWorksForm(el, c) {
     </div>
 
     <div class="photos-section">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
-        <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 0;">Photos (drag handles to reorder)</label>
-        <span class="status" style="font-size: 0.75rem;">${(c.data.photos ?? []).length} in series</span>
+      <div class="photos-subsection-head" style="border-top: none; padding-top: 0;">
+        <h3 class="photos-subsection-title">Photos in series <span style="color: var(--text-faint);">· drag handle to reorder, click filename to rename</span></h3>
+        <span class="status" style="font-size: 0.75rem;" id="in-series-count">${(c.data.photos ?? []).length}</span>
       </div>
 
       <div class="drop-zone" id="drop-zone">
@@ -491,6 +430,7 @@ function renderWorksForm(el, c) {
       <ul class="photo-list" id="photo-list"></ul>
 
       <div id="untracked-section"></div>
+      <div id="candidates-section"></div>
     </div>
 
     <div class="actions">
@@ -498,10 +438,17 @@ function renderWorksForm(el, c) {
       <button class="btn btn-secondary" id="refresh-btn">Refresh from disk</button>
       <span class="status" id="status"></span>
     </div>
+
+    ${c.isNew ? '' : `
+    <div class="danger-zone">
+      <p class="danger-zone-title">Danger zone</p>
+      <p class="danger-zone-desc">Deleting removes the series from the site and your git repo. Original photos in <code>originals/</code> stay on disk.</p>
+      <button class="btn btn-danger" id="delete-series-btn">Delete this series</button>
+    </div>
+    `}
   `;
   el.appendChild(wrap);
 
-  // Bindings
   document.getElementById('f-title').oninput = (e) => {
     c.data.title = e.target.value;
     if (c.isNew && !c.slug) {
@@ -510,36 +457,16 @@ function renderWorksForm(el, c) {
       document.getElementById('f-slug').value = slug;
     }
   };
-  document.getElementById('f-year').oninput = (e) => {
-    c.data.year = Number(e.target.value);
-  };
-  document.getElementById('f-order').oninput = (e) => {
-    c.data.order = Number(e.target.value);
-  };
-  document.getElementById('f-slug').oninput = (e) => {
-    if (c.isNew) c.slug = e.target.value;
-  };
-  document.getElementById('f-intro').oninput = (e) => {
-    c.data.intro = e.target.value || undefined;
-  };
+  document.getElementById('f-year').oninput = (e) => { c.data.year = Number(e.target.value); };
+  document.getElementById('f-order').oninput = (e) => { c.data.order = Number(e.target.value); };
+  document.getElementById('f-slug').oninput = (e) => { if (c.isNew) c.slug = e.target.value; };
+  document.getElementById('f-intro').oninput = (e) => { c.data.intro = e.target.value || undefined; };
 
   renderPhotoList();
   renderUntracked();
+  renderCandidates();
   bindDropZone(uploadWorksPhotos);
 
-  document.getElementById('refresh-btn').onclick = async () => {
-    if (c.isNew) {
-      setStatus('Save first by publishing — then disk scan works.', 'error');
-      return;
-    }
-    setStatus('Reading disk…');
-    const fresh = await api(`/api/entry/${c.section}/${c.slug}`);
-    c.originals = fresh.originals;
-    renderUntracked();
-    setStatus(`${c.originals.length} file${c.originals.length === 1 ? '' : 's'} in originals/.`, 'success');
-  };
-
-  // Sortable on the photo list
   Sortable.create(document.getElementById('photo-list'), {
     handle: '.drag-handle',
     animation: 150,
@@ -552,6 +479,75 @@ function renderWorksForm(el, c) {
   });
 
   document.getElementById('publish-btn').onclick = publish;
+  document.getElementById('refresh-btn').onclick = async () => {
+    if (c.isNew) {
+      setStatus('Save first by publishing — then disk scan works.', 'error');
+      return;
+    }
+    setStatus('Reading disk…');
+    await refreshEntry();
+    setStatus('Refreshed.', 'success');
+  };
+  const delBtn = document.getElementById('delete-series-btn');
+  if (delBtn) delBtn.onclick = deleteSeries;
+}
+
+function renderPhotoList() {
+  const c = state.current;
+  const list = document.getElementById('photo-list');
+  if (!list) return;
+  const count = (c.data.photos ?? []).length;
+  const countEl = document.getElementById('in-series-count');
+  if (countEl) countEl.textContent = String(count);
+
+  list.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const p = c.data.photos[i];
+    const filename = p.src.split('/').pop();
+    const li = document.createElement('li');
+    li.className = 'photo-row';
+    li.innerHTML = `
+      <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+      <img class="photo-thumb" src="/thumb/works/${c.slug}/${filename}?t=${Date.now()}" loading="lazy" />
+      <div class="photo-fields">
+        <p class="filename" data-filename="${filename}" data-idx="${i}" title="Click to rename">${filename}</p>
+        <input type="text" placeholder="Title (optional)" value="${escapeAttr(p.title ?? '')}" data-field="title" data-idx="${i}" />
+        <input type="text" placeholder="Caption (optional)" value="${escapeAttr(p.caption ?? '')}" data-field="caption" data-idx="${i}" />
+      </div>
+      <div class="photo-actions">
+        <button class="icon-btn" data-action="demote" data-idx="${i}" title="Move to candidates (remove from series)">⤓</button>
+        <button class="icon-btn danger" data-action="remove" data-idx="${i}" title="Remove from series (file stays)">×</button>
+      </div>
+    `;
+    list.appendChild(li);
+  }
+
+  list.querySelectorAll('input[data-field]').forEach((inp) => {
+    inp.oninput = (e) => {
+      const i = Number(e.target.dataset.idx);
+      c.data.photos[i][e.target.dataset.field] = e.target.value || undefined;
+    };
+  });
+
+  list.querySelectorAll('.filename').forEach((el) => {
+    el.onclick = (e) => startRename(e.target);
+  });
+
+  list.querySelectorAll('button[data-action]').forEach((btn) => {
+    btn.onclick = (e) => {
+      const i = Number(e.target.dataset.idx);
+      const action = e.target.dataset.action;
+      const filename = c.data.photos[i].src.split('/').pop();
+      if (action === 'remove') {
+        if (!confirm('Remove from series? File stays on disk.')) return;
+        c.data.photos.splice(i, 1);
+        renderPhotoList();
+        renderUntracked();
+      } else if (action === 'demote') {
+        moveToCandidates(filename, i);
+      }
+    };
+  });
 }
 
 function renderUntracked() {
@@ -573,26 +569,24 @@ function renderUntracked() {
   }
 
   el.innerHTML = `
-    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 0.5px dashed var(--border);">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
-        <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0;">
-          ${untracked.length} in originals/, not yet in series
-        </p>
-        <button class="new-btn" id="add-all-btn">+ add all</button>
+    <div class="photos-subsection">
+      <div class="photos-subsection-head">
+        <h3 class="photos-subsection-title">In folder, not in series — ${untracked.length}</h3>
+        <button class="new-btn" id="add-all-btn">+ add all to series</button>
       </div>
       <ul class="photo-list">
-        ${untracked
-          .map(
-            (f) => `
-          <li class="photo-row" style="grid-template-columns: 110px 1fr auto;">
-            <img class="photo-thumb" src="/thumb/works/${c.slug}/${f}" loading="lazy" />
+        ${untracked.map((f) => `
+          <li class="photo-row no-handle">
+            <img class="photo-thumb" src="/thumb/works/${c.slug}/${f}?t=${Date.now()}" loading="lazy" />
             <div class="photo-fields">
-              <p class="filename">${f}</p>
+              <p class="filename" data-filename="${f}" data-stage="untracked" title="Click to rename">${f}</p>
             </div>
-            <button class="btn btn-secondary" data-add="${f}">+ add</button>
-          </li>`,
-          )
-          .join('')}
+            <div class="photo-actions">
+              <button class="small-btn" data-add="${f}">+ add</button>
+              <button class="small-btn" data-demote="${f}">→ candidates</button>
+            </div>
+          </li>
+        `).join('')}
       </ul>
     </div>
   `;
@@ -611,6 +605,14 @@ function renderUntracked() {
     };
   });
 
+  el.querySelectorAll('button[data-demote]').forEach((btn) => {
+    btn.onclick = (e) => moveToCandidates(e.target.dataset.demote);
+  });
+
+  el.querySelectorAll('.filename').forEach((node) => {
+    node.onclick = (e) => startRename(e.target);
+  });
+
   document.getElementById('add-all-btn').onclick = () => {
     untracked.forEach(addToSeries);
     renderPhotoList();
@@ -618,56 +620,181 @@ function renderUntracked() {
   };
 }
 
-function renderPhotoList() {
+function renderCandidates() {
   const c = state.current;
-  const list = document.getElementById('photo-list');
-  list.innerHTML = '';
-  for (let i = 0; i < (c.data.photos ?? []).length; i++) {
-    const p = c.data.photos[i];
-    const li = document.createElement('li');
-    li.className = 'photo-row';
-    const filename = p.src.split('/').pop();
-    li.innerHTML = `
-      <div class="drag-handle">⋮⋮</div>
-      <img class="photo-thumb" src="/thumb/works/${c.slug}/${filename}" loading="lazy" />
-      <div class="photo-fields">
-        <p class="filename">${filename}</p>
-        <input type="text" placeholder="Title (optional)" value="${escapeAttr(p.title ?? '')}" data-field="title" data-idx="${i}" />
-        <input type="text" placeholder="Caption (optional)" value="${escapeAttr(p.caption ?? '')}" data-field="caption" data-idx="${i}" />
-      </div>
-      <button class="remove-btn" data-idx="${i}" title="Remove from series">×</button>
-    `;
-    list.appendChild(li);
+  const el = document.getElementById('candidates-section');
+  if (!el || !c || c.section !== 'works') return;
+
+  const candidates = c.candidates ?? [];
+  if (candidates.length === 0) {
+    el.innerHTML = '';
+    return;
   }
 
-  list.querySelectorAll('input[data-field]').forEach((inp) => {
-    inp.oninput = (e) => {
-      const i = Number(e.target.dataset.idx);
-      const field = e.target.dataset.field;
-      const v = e.target.value || undefined;
-      c.data.photos[i][field] = v;
-    };
+  el.innerHTML = `
+    <div class="photos-subsection">
+      <div class="photos-subsection-head">
+        <h3 class="photos-subsection-title">Candidates (in _candidates/) — ${candidates.length}</h3>
+      </div>
+      <ul class="photo-list">
+        ${candidates.map((f) => `
+          <li class="photo-row no-handle candidate">
+            <img class="photo-thumb" src="/thumb/works/${c.slug}/_candidates/${f}?t=${Date.now()}" loading="lazy" />
+            <div class="photo-fields">
+              <p class="filename">${f}</p>
+            </div>
+            <div class="photo-actions">
+              <button class="small-btn" data-promote="${f}">+ add to series</button>
+              <button class="small-btn danger" data-delete-cand="${f}">delete forever</button>
+            </div>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+
+  el.querySelectorAll('button[data-promote]').forEach((btn) => {
+    btn.onclick = (e) => promoteFromCandidates(e.target.dataset.promote);
   });
 
-  list.querySelectorAll('.remove-btn').forEach((btn) => {
-    btn.onclick = (e) => {
-      const i = Number(e.target.dataset.idx);
-      if (!confirm('Remove this photo from the series?')) return;
-      c.data.photos.splice(i, 1);
-      renderPhotoList();
-    };
+  el.querySelectorAll('button[data-delete-cand]').forEach((btn) => {
+    btn.onclick = (e) => deleteCandidate(e.target.dataset.deleteCand);
   });
 }
+
+// ---------- file actions ----------
+
+async function moveToCandidates(filename, indexInSeries) {
+  const c = state.current;
+  setStatus(`Moving ${filename} to candidates…`);
+  try {
+    await apiJson('/api/move-file', 'POST', {
+      section: 'works', slug: c.slug, filename, to: 'candidates',
+    });
+    // If it was in series, remove from .md
+    if (typeof indexInSeries === 'number') {
+      c.data.photos.splice(indexInSeries, 1);
+    }
+    await refreshEntry();
+    setStatus('Moved to candidates.', 'success');
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'error');
+  }
+}
+
+async function promoteFromCandidates(filename) {
+  const c = state.current;
+  setStatus(`Promoting ${filename}…`);
+  try {
+    await apiJson('/api/move-file', 'POST', {
+      section: 'works', slug: c.slug, filename, to: 'series',
+    });
+    const cleanName = filename.replace(/\.(jpe?g)$/i, '.jpg');
+    c.data.photos = c.data.photos ?? [];
+    c.data.photos.push({ src: `./${c.slug}/${cleanName}` });
+    await refreshEntry();
+    setStatus('Added to series.', 'success');
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'error');
+  }
+}
+
+async function deleteCandidate(filename) {
+  if (!confirm(`Permanently delete ${filename}? This removes the file from disk.`)) return;
+  const c = state.current;
+  setStatus(`Deleting ${filename}…`);
+  try {
+    await apiJson('/api/delete-candidate', 'POST', {
+      section: 'works', slug: c.slug, filename,
+    });
+    await refreshEntry();
+    setStatus('Deleted.', 'success');
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'error');
+  }
+}
+
+async function deleteSeries() {
+  const c = state.current;
+  if (!confirm(`Delete series "${c.data.title}"? This removes it from the site. Originals stay on disk.\n\nThis cannot be undone.`)) return;
+  setStatus('Deleting series…');
+  try {
+    await api(`/api/series/${c.slug}`, { method: 'DELETE' });
+    setStatus('Series deleted.', 'success');
+    state.current = null;
+    await loadState();
+    renderMain();
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'error');
+  }
+}
+
+function startRename(el) {
+  const c = state.current;
+  const oldName = el.dataset.filename || el.textContent;
+  const stage = el.dataset.stage; // 'untracked' or undefined (in series)
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = oldName;
+  input.className = 'filename-edit';
+
+  let done = false;
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    input.replaceWith(el);
+  };
+
+  const save = async () => {
+    if (done) return;
+    done = true;
+    const newName = input.value.trim();
+    if (!newName || newName === oldName) {
+      input.replaceWith(el);
+      return;
+    }
+    try {
+      const result = await apiJson('/api/rename-file', 'POST', {
+        section: 'works',
+        slug: c.slug,
+        oldName,
+        newName,
+      });
+      // Update local state — server already updated .md on disk
+      if (c.section === 'works' && Array.isArray(c.data.photos)) {
+        for (const p of c.data.photos) {
+          if (p.src.endsWith('/' + oldName)) {
+            p.src = p.src.replace(oldName, result.newName);
+          }
+        }
+      }
+      await refreshEntry();
+      setStatus(`Renamed ${oldName} → ${result.newName}`, 'success');
+    } catch (e) {
+      setStatus('Rename failed: ' + e.message, 'error');
+      input.replaceWith(el);
+    }
+  };
+
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); save(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+  };
+  input.onblur = save;
+
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+}
+
+// ---------- upload ----------
 
 function bindDropZone(uploadFn) {
   const zone = document.getElementById('drop-zone');
   const input = document.getElementById('file-input');
   zone.onclick = () => input.click();
   input.onchange = () => uploadFn([...input.files]);
-  zone.ondragover = (e) => {
-    e.preventDefault();
-    zone.classList.add('drag-over');
-  };
+  zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
   zone.ondragleave = () => zone.classList.remove('drag-over');
   zone.ondrop = (e) => {
     e.preventDefault();
@@ -678,12 +805,8 @@ function bindDropZone(uploadFn) {
 
 async function uploadMonthlyPhoto(files) {
   const c = state.current;
-  if (!c.slug) {
-    setStatus('Set date first', 'error');
-    return;
-  }
+  if (!c.slug) { setStatus('Set date first', 'error'); return; }
   if (files.length === 0) return;
-  // Use first file only, rename to slug
   const file = files[0];
   const renamed = new File([file], `${c.slug}.jpg`, { type: file.type });
   const fd = new FormData();
@@ -693,16 +816,12 @@ async function uploadMonthlyPhoto(files) {
   setStatus('Uploading…');
   await api('/api/upload', { method: 'POST', body: fd });
   setStatus('Uploaded.', 'success');
-  // Refresh
   renderMain();
 }
 
 async function uploadWorksPhotos(files) {
   const c = state.current;
-  if (!c.slug) {
-    setStatus('Set slug first', 'error');
-    return;
-  }
+  if (!c.slug) { setStatus('Set slug first', 'error'); return; }
   if (files.length === 0) return;
   const fd = new FormData();
   fd.append('section', 'works');
@@ -715,9 +834,11 @@ async function uploadWorksPhotos(files) {
     const cleanName = fn.replace(/\.(JPE?G)$/i, '.jpg');
     c.data.photos.push({ src: `./${c.slug}/${cleanName}` });
   }
+  await refreshEntry();
   setStatus(`Uploaded ${filenames.length}.`, 'success');
-  renderPhotoList();
 }
+
+// ---------- publish ----------
 
 async function publish() {
   const c = state.current;
@@ -725,15 +846,11 @@ async function publish() {
   btn.disabled = true;
   setStatus('Processing photos and pushing…');
   try {
-    await api('/api/publish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        section: c.section,
-        slug: c.slug,
-        data: c.data,
-        content: c.content,
-      }),
+    await apiJson('/api/publish', 'POST', {
+      section: c.section,
+      slug: c.slug,
+      data: c.data,
+      content: c.content,
     });
     setStatus('✓ Pushed. Vercel will deploy in ~1 min.', 'success');
     c.isNew = false;
@@ -745,24 +862,18 @@ async function publish() {
   }
 }
 
+// ---------- utils ----------
+
 function setStatus(text, kind = '') {
   const el = document.getElementById('status');
   if (!el) return;
   el.textContent = text;
   el.className = 'status ' + kind;
 }
-
-function escapeAttr(s) {
-  return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
-function escapeHtml(s) {
-  return String(s).replace(/</g, '&lt;');
-}
+function escapeAttr(s) { return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function escapeHtml(s) { return String(s).replace(/</g, '&lt;'); }
 function slugify(s) {
-  return String(s)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
 document.getElementById('new-monthly').onclick = newMonthly;
