@@ -262,14 +262,54 @@ app.post('/api/move-file', async (req, res) => {
   }
 });
 
-// Permanently delete a candidate (file in _candidates/).
-app.post('/api/delete-candidate', async (req, res) => {
+// Move a single photo to originals/_archive/<section>/<slug>/. Mirrors
+// the active folder structure under _archive/. Used by the "archive"
+// action on candidates (and could be used elsewhere later).
+async function archivePhotoFile(section, slug, sourcePath, filename) {
+  const archiveDir =
+    section === 'monthly'
+      ? path.join(ORIGINALS, '_archive', 'monthly')
+      : path.join(ORIGINALS, '_archive', 'works', slug);
+  await fs.mkdir(archiveDir, { recursive: true });
+
+  let destPath = path.join(archiveDir, filename);
+  if (await exists(destPath)) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const ext = path.extname(filename);
+    const base = filename.slice(0, -ext.length);
+    destPath = path.join(archiveDir, `${base}-${stamp}${ext}`);
+  }
+  await fs.rename(sourcePath, destPath);
+  return path.relative(ROOT, destPath);
+}
+
+// Archive a single photo (non-destructive). Reads the photo from its
+// current location (candidates by default; series top-level if from=='series')
+// and moves it under originals/_archive/<section>/<slug>/.
+app.post('/api/archive-photo', async (req, res) => {
   try {
-    const { section, slug, filename } = req.body;
+    const { section, slug, filename, from = 'candidates' } = req.body;
     if (section !== 'works') return res.status(400).json({ error: 'Works only.' });
-    const candPath = path.join(ORIGINALS, 'works', slug, CANDIDATES_DIR, filename);
-    await fs.unlink(candPath);
-    res.json({ ok: true });
+
+    const sourcePath =
+      from === 'series' || from === 'untracked'
+        ? path.join(ORIGINALS, 'works', slug, filename)
+        : path.join(ORIGINALS, 'works', slug, CANDIDATES_DIR, filename);
+
+    const archivedTo = await archivePhotoFile(section, slug, sourcePath, filename);
+
+    // Drop the processed copy from src/content/ if it exists
+    const processed = path.join(
+      CONTENT,
+      'works',
+      slug,
+      filename.replace(/\.(jpe?g)$/i, '.jpg'),
+    );
+    try {
+      await fs.unlink(processed);
+    } catch {}
+
+    res.json({ ok: true, archivedTo });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

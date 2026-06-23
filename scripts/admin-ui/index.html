@@ -645,7 +645,7 @@ function renderCandidates() {
             </div>
             <div class="photo-actions">
               <button class="small-btn" data-promote="${f}">+ add to series</button>
-              <button class="small-btn danger" data-delete-cand="${f}">delete forever</button>
+              <button class="small-btn danger" data-archive-cand="${f}" title="Move to originals/_archive/">archive</button>
             </div>
           </li>
         `).join('')}
@@ -657,8 +657,8 @@ function renderCandidates() {
     btn.onclick = (e) => promoteFromCandidates(e.target.dataset.promote);
   });
 
-  el.querySelectorAll('button[data-delete-cand]').forEach((btn) => {
-    btn.onclick = (e) => deleteCandidate(e.target.dataset.deleteCand);
+  el.querySelectorAll('button[data-archive-cand]').forEach((btn) => {
+    btn.onclick = (e) => archiveCandidate(e.target.dataset.archiveCand);
   });
 }
 
@@ -699,16 +699,16 @@ async function promoteFromCandidates(filename) {
   }
 }
 
-async function deleteCandidate(filename) {
-  if (!confirm(`Permanently delete ${filename}? This removes the file from disk.`)) return;
+async function archiveCandidate(filename) {
+  if (!confirm(`Archive ${filename}?\n\nMoves the file to originals/_archive/works/${state.current.slug}/. Restorable by moving the file back.`)) return;
   const c = state.current;
-  setStatus(`Deleting ${filename}…`);
+  setStatus(`Archiving ${filename}…`);
   try {
-    await apiJson('/api/delete-candidate', 'POST', {
-      section: 'works', slug: c.slug, filename,
+    const r = await apiJson('/api/archive-photo', 'POST', {
+      section: 'works', slug: c.slug, filename, from: 'candidates',
     });
     await refreshEntry();
-    setStatus('Deleted.', 'success');
+    setStatus(`Archived → ${r.archivedTo}`, 'success');
   } catch (e) {
     setStatus('Error: ' + e.message, 'error');
   }
