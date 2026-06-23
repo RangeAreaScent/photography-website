@@ -276,15 +276,44 @@ app.post('/api/delete-candidate', async (req, res) => {
 });
 
 // Delete an entire works series.
-// Removes .md and src/content/works/[slug]/. Leaves originals/ alone for safety.
+//
+// Removes the .md and src/content/works/[slug]/ folder, then MOVES
+// originals/works/[slug]/ → originals/_archive/works/[slug]/ (keeping
+// the same internal structure, including any _candidates/ subfolder).
+// The archive lives outside the active workflow but stays on disk so
+// the user can restore by moving the folder back and re-creating .md.
+// Slug collisions inside _archive/ get a timestamp suffix.
 app.delete('/api/series/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
+    let archivedTo = null;
+
+    // Move originals to _archive/ (if they exist).
+    const origDir = path.join(ORIGINALS, 'works', slug);
+    if (await exists(origDir)) {
+      const archiveBase = path.join(ORIGINALS, '_archive', 'works');
+      await fs.mkdir(archiveBase, { recursive: true });
+      let archiveDir = path.join(archiveBase, slug);
+      if (await exists(archiveDir)) {
+        const stamp = new Date()
+          .toISOString()
+          .replace(/[:.]/g, '-')
+          .slice(0, 19);
+        archiveDir = path.join(archiveBase, `${slug}-archived-${stamp}`);
+      }
+      await fs.rename(origDir, archiveDir);
+      archivedTo = path.relative(ROOT, archiveDir);
+    }
+
+    // Remove the .md and processed copies from src/content/.
     const mdPath = path.join(CONTENT, 'works', slug + '.md');
-    const contentDir = path.join(CONTENT, 'works', slug);
-    await fs.unlink(mdPath);
     try {
-      await fs.rm(contentDir, { recursive: true, force: true });
+      await fs.unlink(mdPath);
+    } catch (e) {
+      if (e.code !== 'ENOENT') throw e;
+    }
+    try {
+      await fs.rm(path.join(CONTENT, 'works', slug), { recursive: true, force: true });
     } catch {}
 
     execSync('git add -A', { cwd: ROOT });
@@ -295,7 +324,7 @@ app.delete('/api/series/:slug', async (req, res) => {
     }
     execSync('git push', { cwd: ROOT });
 
-    res.json({ ok: true });
+    res.json({ ok: true, archivedTo });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

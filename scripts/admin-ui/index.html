@@ -442,7 +442,7 @@ function renderWorksForm(el, c) {
     ${c.isNew ? '' : `
     <div class="danger-zone">
       <p class="danger-zone-title">Danger zone</p>
-      <p class="danger-zone-desc">Deleting removes the series from the site and your git repo. Original photos in <code>originals/</code> stay on disk.</p>
+      <p class="danger-zone-desc">Removes the series from the site and git repo. Originals are moved to <code>originals/_archive/works/${c.slug}/</code> so you can restore later by moving the folder back.</p>
       <button class="btn btn-danger" id="delete-series-btn">Delete this series</button>
     </div>
     `}
@@ -716,11 +716,12 @@ async function deleteCandidate(filename) {
 
 async function deleteSeries() {
   const c = state.current;
-  if (!confirm(`Delete series "${c.data.title}"? This removes it from the site. Originals stay on disk.\n\nThis cannot be undone.`)) return;
+  if (!confirm(`Delete series "${c.data.title}"?\n\nRemoves it from the site and git. Originals move to originals/_archive/works/${c.slug}/ — restorable by moving the folder back.`)) return;
   setStatus('Deleting series…');
   try {
-    await api(`/api/series/${c.slug}`, { method: 'DELETE' });
-    setStatus('Series deleted.', 'success');
+    const result = await api(`/api/series/${c.slug}`, { method: 'DELETE' });
+    const archiveMsg = result.archivedTo ? ` Originals archived → ${result.archivedTo}` : '';
+    setStatus('Series deleted.' + archiveMsg, 'success');
     state.current = null;
     await loadState();
     renderMain();
