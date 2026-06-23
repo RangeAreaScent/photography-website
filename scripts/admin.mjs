@@ -114,20 +114,29 @@ app.get('/api/entry/:section/:slug', async (req, res) => {
   }
 });
 
-// Thumbnail proxy — resize on demand from originals/
-app.get('/thumb/*', async (req, res) => {
+// Suppress favicon 404 noise (no favicon for local admin)
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Thumbnail proxy — resize on demand. Tries originals/ first, falls
+// back to the optimized copy in src/content/ (handles placeholder
+// photos that never had originals).
+app.get(/^\/thumb\/(.+)$/, async (req, res) => {
   const rel = req.params[0];
-  const filePath = path.join(ORIGINALS, rel);
-  try {
-    const buffer = await sharp(filePath)
-      .rotate()
-      .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: 75 })
-      .toBuffer();
-    res.type('image/jpeg').send(buffer);
-  } catch (e) {
-    res.status(404).end();
+  const candidates = [path.join(ORIGINALS, rel), path.join(CONTENT, rel)];
+  for (const filePath of candidates) {
+    try {
+      const buffer = await sharp(filePath)
+        .rotate()
+        .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 75 })
+        .toBuffer();
+      res.type('image/jpeg').send(buffer);
+      return;
+    } catch {
+      // try next candidate
+    }
   }
+  res.status(404).end();
 });
 
 // Upload photos
