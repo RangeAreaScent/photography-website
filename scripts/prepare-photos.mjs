@@ -13,6 +13,7 @@
 import sharp from 'sharp';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import matter from 'gray-matter';
 
 const SOURCE = 'originals';
 const DEST = 'src/content';
@@ -87,11 +88,77 @@ async function walk(srcDir, destDir) {
   }
 }
 
+// Removes JPEGs in src/content/ that aren't referenced by any .md frontmatter.
+// Keeps src/content/ a strict mirror of what's actually published, so orphans
+// don't pile up in git over time. Driven by .md references (not by originals/)
+// so this works even for entries whose source lives only in src/content/.
+let pruned = 0;
+async function pruneOrphans() {
+  // Map of directory → Set of allowed filenames
+  const allowed = new Map();
+
+  const worksDir = path.join(DEST, 'works');
+  if (await exists(worksDir)) {
+    const mds = (await fs.readdir(worksDir)).filter((f) => f.endsWith('.md'));
+    for (const f of mds) {
+      const slug = f.replace(/\.md$/, '');
+      const md = matter(await fs.readFile(path.join(worksDir, f), 'utf-8'));
+      const set = new Set();
+      for (const p of md.data.photos ?? []) {
+        if (typeof p.src === 'string') set.add(p.src.split('/').pop());
+      }
+      allowed.set(path.join(worksDir, slug), set);
+    }
+  }
+
+  const monthlyDir = path.join(DEST, 'monthly');
+  if (await exists(monthlyDir)) {
+    const set = new Set();
+    const mds = (await fs.readdir(monthlyDir)).filter((f) => f.endsWith('.md'));
+    for (const f of mds) {
+      const md = matter(await fs.readFile(path.join(monthlyDir, f), 'utf-8'));
+      if (typeof md.data.photo === 'string') set.add(md.data.photo.split('/').pop());
+    }
+    allowed.set(monthlyDir, set);
+  }
+
+  for (const [dir, set] of allowed) {
+    let files;
+    try {
+      files = await fs.readdir(dir, { withFileTypes: true });
+    } catch (e) {
+      if (e.code === 'ENOENT') continue;
+      throw e;
+    }
+    for (const f of files) {
+      if (!f.isFile()) continue;
+      if (!/\.(jpe?g)$/i.test(f.name)) continue;
+      if (set.has(f.name)) continue;
+      const dest = path.join(dir, f.name);
+      await fs.unlink(dest);
+      console.log(`  pruned: ${path.relative(DEST, dest)}`);
+      pruned++;
+    }
+  }
+}
+
 if (!(await exists(SOURCE))) {
   console.log(`No ${SOURCE}/ directory — nothing to prepare.`);
   process.exit(0);
 }
 
+const shouldPrune = process.argv.includes('--prune');
+
 console.log(`Preparing photos: ${SOURCE}/ → ${DEST}/\n`);
 await walk(SOURCE, DEST);
-console.log(`\n  ${processed} processed, ${skipped} unchanged, ${total} total.\n`);
+if (shouldPrune) {
+  await pruneOrphans();
+}
+const pruneNote = shouldPrune
+  ? `, ${pruned} pruned`
+  : '';
+console.log(`\n  ${processed} processed, ${skipped} unchanged${pruneNote}, ${total} total.`);
+if (!shouldPrune) {
+  console.log(`  (run with --prune to remove src/content/ files not referenced by any .md)`);
+}
+console.log();

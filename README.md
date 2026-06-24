@@ -27,11 +27,32 @@ npm run dev
 
 Finder에서 `admin.command` 더블클릭 → http://localhost:4322 자동 오픈.
 
-- 좌측 사이드바: 기존 Monthly / Works 목록 + "+ new" 버튼
-- 새 시리즈/월간 만들거나, 기존 것 클릭해서 편집
-- 사진을 드롭존에 드래그-드롭 (또는 클릭해서 선택)
-- Works 사진은 **드래그 핸들(⋮⋮)로 순서 변경**, 각 사진에 **타이틀·캡션** 입력 가능
-- **Publish to d612.space** 버튼 → 변환 → git commit → push → Vercel 자동 배포
+**사이드바 (좌측)**
+- Monthly / Works 목록, 각 항목 클릭으로 편집
+- "+ new" 버튼으로 새 월간/시리즈 생성
+
+**메인 편집 화면 (우측)** — 시리즈 기준:
+- 제목·연도·순서·intro·slug 필드
+- 드롭존: 사진을 드래그-드롭 (또는 클릭) → 자동으로 `originals/`에 저장
+- **Photos in series** — 시리즈에 포함된 사진들
+  - `⋮⋮` 드래그 핸들로 순서 변경
+  - 파일명 **클릭 → 인라인 편집** (Enter 저장 / Esc 취소) — `originals/` + `src/content/` + `.md` 동시 업데이트
+  - 각 사진에 **Title / Caption** 입력
+  - `⤓` → candidates로 강등 (시리즈에서 빼고 보류 폴더로)
+  - `×` 시리즈에서 제거 (파일은 top-level에 그대로 남음)
+- **In folder, not in series** — `originals/[slug]/` top-level에 있지만 `.md`엔 없는 파일
+  - `+ add` → 시리즈에 추가
+  - `→ candidates` → 보류 폴더로
+  - `+ add all to series` → 한 번에 다 추가
+- **Candidates** — `originals/[slug]/_candidates/` 안의 보류 파일들
+  - `+ add to series` → 다시 시리즈로 승격
+  - `archive` → `_archive/` 로 이동 (영구 보관, 복구 가능)
+- **Danger zone** (하단, 빨간색) — 시리즈 통째로 삭제
+  - 사이트·git에서 제거
+  - `originals/works/[slug]/` 전체가 `_archive/works/[slug]/`로 이동
+  - 복구는 폴더 다시 옮기고 `.md` 재작성
+
+**Publish 버튼** → `prepare-photos` 자동 실행 → git commit → push → Vercel 배포 (1~2분)
 
 종료: Terminal 창 닫기.
 
@@ -52,25 +73,78 @@ Push하면 Vercel이 자동으로 빌드·배포. 1~2분 후 https://d612.space 
 원본 사진은 **`originals/` 폴더**에 들어가고 (git에 안 올라감), 변환된 작은 파일이 자동으로 **`src/content/`** 에 생기는 구조입니다.
 
 ```
-originals/                       ← 로컬에만, git에서 제외 (대용량 원본 보관)
+originals/                          ← 로컬에만, git에서 제외 (대용량 원본 보관)
 ├── monthly/
-│   └── 2026-07.jpg              (카메라 원본 그대로, 10~20MB)
-└── works/
-    └── 02-concrete-geometry/
-        ├── 01.jpg               (선정된 사진)
-        └── _candidates/         ← _ 접두사 폴더는 스크립트가 무시
-            └── candidate.jpg    (작업 흐름용 후보 파일)
+│   └── 2026-07.jpg                 (카메라 원본 그대로, 10~20MB)
+├── works/
+│   └── 02-concrete-geometry/
+│       ├── 01.jpg                  (선정된 사진, .md에 포함됨)
+│       └── _candidates/            ("나중에 쓸 수도" 보류 파일들)
+│           └── unused.jpg
+└── _archive/                       (완전히 폐기 — 복구 가능한 보관소)
+    └── works/
+        └── 02-old-series/          (삭제된 시리즈 또는 archive된 사진)
+            └── ...
 
-src/content/                     ← git에 들어감, 변환된 작은 파일
+src/content/                        ← git에 들어감, 변환된 작은 파일
 ├── monthly/
-│   ├── 2026-07.jpg             (긴 쪽 3000px·JPEG 90%·GPS 제거, ~2MB)
-│   └── 2026-07.md              ← 메타데이터는 여기서 편집
+│   ├── 2026-07.jpg                 (긴 쪽 3000px·JPEG 90%·GPS 제거, ~2MB)
+│   └── 2026-07.md                  ← 메타데이터는 여기서 편집
 └── works/...
 ```
 
 **변환은 자동.** `npm run dev` 또는 `npm run build`를 실행하면 그 전에 `prepare-photos` 스크립트가 돌면서 `originals/`에 새 파일이 있으면 자동으로 변환해 `src/content/`에 떨굽니다. 수동으로 돌리고 싶으면 `npm run prepare-photos`.
 
-`_` 접두사 폴더(`_candidates/` 등) 안의 파일은 변환되지 않음 — 후보 사진을 같이 보관해도 사이트엔 영향 없음.
+`_` 접두사 폴더(`_candidates/`, `_archive/` 등) 안의 파일은 변환되지 않음 — 보류·폐기 파일을 같이 보관해도 사이트엔 영향 없음.
+
+#### Orphan 정리 (선택)
+
+가끔 admin/Finder 작업 중에 `.md`에선 빠졌는데 `src/content/`엔 남아있는 파일이 생길 수 있어요. 이런 orphan들이 누적되면 repo가 무거워집니다.
+
+```bash
+npm run prepare-photos -- --prune
+```
+
+`.md` 어느 곳에서도 참조되지 않는 src/content/ JPEG들을 자동으로 제거합니다. **`.md`가 현재 의도와 일치하는지 먼저 확인하세요** (잘못된 .md를 두고 --prune 하면 실제 보여줘야 할 사진까지 사라집니다).
+
+### 사진의 4단계 라이프사이클
+
+```
+                    [시리즈 발표]
+                          ↑
+                      + add │ × remove (.md에서만)
+                          ↓
+            originals/works/[slug]/        ← top-level (활성)
+                          │
+                      ⤓   │   ↑ + add
+                          ↓
+            originals/works/[slug]/_candidates/   ← 시리즈 내 보류
+                          │
+                    archive│   (복구는 수동)
+                          ↓
+            originals/_archive/works/[slug]/      ← 완전 폐기, 영구 보관
+```
+
+| 상태 | 위치 | 사이트에 보임? | 변환됨? | 복구 |
+|---|---|---|---|---|
+| **시리즈 발표** | `originals/works/[slug]/file.jpg` + `.md`에 등록 | ✓ | ✓ | — |
+| **top-level (untracked)** | `originals/works/[slug]/file.jpg`, `.md` 미등록 | ✗ | ✗ (prepare-photos가 만들 수도) | — |
+| **시리즈 내 보류** | `originals/works/[slug]/_candidates/file.jpg` | ✗ | ✗ | admin에서 `+ add to series` |
+| **완전 폐기** | `originals/_archive/works/[slug]/file.jpg` | ✗ | ✗ | 폴더 수동 이동 |
+
+**영구 삭제는 없음** — 모든 "삭제" 액션이 archive로 비파괴적으로 이동합니다. 디스크 공간이 정말 부족할 때만 `_archive/` 폴더를 수동으로 비우세요.
+
+### Archive에서 복구하기
+
+```bash
+# 단일 사진 복구 (시리즈로 되돌리기)
+mv originals/_archive/works/02-foo/photo.jpg originals/works/02-foo/_candidates/
+# → admin에서 candidates에 나타남 → "+ add to series" 클릭
+
+# 시리즈 통째로 복구
+mv originals/_archive/works/02-old-series originals/works/02-old-series
+# → admin에서 "+ new" → slug를 02-old-series로 → "Refresh from disk" → "+ add all to series"
+```
 
 ---
 

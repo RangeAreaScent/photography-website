@@ -214,14 +214,19 @@ app.post('/api/rename-file', async (req, res) => {
       }
     }
 
+    let didAnyRename = false;
     for (const d of dirs) {
       const oldP = path.join(d, oldName);
       const newP = path.join(d, clean);
       try {
         await fs.rename(oldP, newP);
+        didAnyRename = true;
       } catch (e) {
         if (e.code !== 'ENOENT') throw e;
       }
+    }
+    if (!didAnyRename) {
+      return res.status(404).json({ error: `File '${oldName}' not found in this series.` });
     }
 
     await renameInMarkdown(section, slug, oldName, clean);
@@ -245,7 +250,15 @@ app.post('/api/move-file', async (req, res) => {
     const src = to === 'series' ? path.join(candDir, filename) : path.join(dir, filename);
     const dest = to === 'series' ? path.join(dir, filename) : path.join(candDir, filename);
 
-    await fs.rename(src, dest);
+    try {
+      await fs.rename(src, dest);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        const where = to === 'series' ? '_candidates/' : 'top-level folder';
+        return res.status(404).json({ error: `'${filename}' not found in ${where}.` });
+      }
+      throw e;
+    }
 
     // If demoting to candidates, also drop the processed copy in src/content/
     // (it'll get regenerated if the photo is promoted back later).
