@@ -44,8 +44,8 @@ const fmtMonth = (d: Date) =>
   <div class="player" transition:persist="bg-player">
     <audio id="bg-audio" src="/audio/sakartvelo.mp3" preload="none" loop></audio>
     <button id="bg-toggle" class="play-btn" type="button" aria-label="Play music">
-      <span class="play-icon" aria-hidden="true">▶</span>
-      <span class="play-title">Sakartvelo</span>
+      <span class="play-icon" aria-hidden="true">♪</span>
+      <span class="play-title">(bgm)</span>
     </button>
   </div>
 
@@ -169,12 +169,10 @@ const fmtMonth = (d: Date) =>
 
   .play-icon {
     display: inline-block;
-    width: 0.55rem;
-    text-align: center;
-    font-size: 0.5625rem;
+    font-size: 0.9375rem;
     font-style: normal;
     line-height: 1;
-    transform: translateY(-1px);
+    transform: translateY(1px);
   }
 
   .play-title {
@@ -326,7 +324,7 @@ const fmtMonth = (d: Date) =>
 
     const icon = button.querySelector('.play-icon') as HTMLElement | null;
     const sync = () => {
-      if (icon) icon.textContent = audio.paused ? '▶' : '❚❚';
+      if (icon) icon.textContent = audio.paused ? '♪' : '♫';
       button.setAttribute('aria-label', audio.paused ? 'Play music' : 'Pause music');
     };
 
