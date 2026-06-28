@@ -20,3 +20,6 @@ dist/
 
 # Originals — local only; processed copies go to src/content/
 originals/
+
+# Audio source files — keep originals out of repo, compressed copy lives in public/audio/
+Music/

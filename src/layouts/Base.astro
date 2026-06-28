@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 
 interface Props {
@@ -49,6 +50,7 @@ const siteName = 'Doohee Lee — Photographs';
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;1,400;1,500&display=swap"
     />
+    <ClientRouter />
   </head>
   <body>
     <Header />

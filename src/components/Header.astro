@@ -41,6 +41,14 @@ const fmtMonth = (d: Date) =>
     <a href="mailto:hello@example.com" class="nav-link">Contact</a>
     <a href="https://instagram.com" class="nav-link" rel="me noopener">Instagram</a>
   </nav>
+  <div class="player" transition:persist="bg-player">
+    <audio id="bg-audio" src="/audio/sakartvelo.mp3" preload="none" loop></audio>
+    <button id="bg-toggle" class="play-btn" type="button" aria-label="Play music">
+      <span class="play-icon" aria-hidden="true">▶</span>
+      <span class="play-title">Sakartvelo</span>
+    </button>
+  </div>
+
   <p class="meta">© {new Date().getFullYear()}  Doohee Lee</p>
 </aside>
 
@@ -134,8 +142,47 @@ const fmtMonth = (d: Date) =>
     font-style: normal;
   }
 
-  .meta {
+  .player {
     margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  .play-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+    transition: color 120ms ease;
+  }
+
+  .play-btn:hover {
+    color: var(--text);
+  }
+
+  .play-icon {
+    display: inline-block;
+    width: 0.55rem;
+    text-align: center;
+    font-size: 0.5625rem;
+    font-style: normal;
+    line-height: 1;
+    transform: translateY(-1px);
+  }
+
+  .play-title {
+    line-height: 1;
+  }
+
+  .meta {
+    margin-top: 0.5rem;
     margin-bottom: 0;
     font-size: 0.75rem;
     color: var(--text-faint);
@@ -256,5 +303,49 @@ const fmtMonth = (d: Date) =>
       content: '• ';
       position: static;
     }
+
+    .player {
+      order: 99;
+      flex-basis: 100%;
+      margin-top: 0.5rem;
+      padding-top: 0;
+    }
   }
 </style>
+
+<script>
+  // Bind the music toggle once. The player element uses transition:persist
+  // so it survives ClientRouter navigations and keeps playing; the button
+  // already has its click handler attached from the first page load.
+  function bindMusicToggle() {
+    const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
+    const button = document.getElementById('bg-toggle') as HTMLButtonElement | null;
+    if (!audio || !button) return;
+    if (button.dataset.bound === '1') return;
+    button.dataset.bound = '1';
+
+    const icon = button.querySelector('.play-icon') as HTMLElement | null;
+    const sync = () => {
+      if (icon) icon.textContent = audio.paused ? '▶' : '❚❚';
+      button.setAttribute('aria-label', audio.paused ? 'Play music' : 'Pause music');
+    };
+
+    button.addEventListener('click', async () => {
+      if (audio.paused) {
+        try {
+          await audio.play();
+        } catch {
+          // Autoplay policy may block — ignore; user can click again.
+        }
+      } else {
+        audio.pause();
+      }
+    });
+    audio.addEventListener('play', sync);
+    audio.addEventListener('pause', sync);
+    sync();
+  }
+
+  bindMusicToggle();
+  document.addEventListener('astro:page-load', bindMusicToggle);
+</script>
