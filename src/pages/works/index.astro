@@ -136,3 +136,50 @@ const description = first
     font-size: 0.9375rem;
   }
 </style>
+
+<script>
+  function initKeyboardNav() {
+    const figures = Array.from(document.querySelectorAll<HTMLElement>('.library .figure'));
+    if (figures.length < 2) return;
+
+    const controller = new AbortController();
+
+    const findCurrentIndex = () => {
+      const anchor = 120;
+      let idx = 0;
+      for (let i = 0; i < figures.length; i++) {
+        if (figures[i].getBoundingClientRect().top <= anchor) idx = i;
+      }
+      return idx;
+    };
+
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        const t = e.target as HTMLElement;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+
+        const current = findCurrentIndex();
+        let target = current;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'j') {
+          target = Math.min(current + 1, figures.length - 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'k') {
+          target = Math.max(current - 1, 0);
+        } else {
+          return;
+        }
+
+        if (target !== current) {
+          e.preventDefault();
+          figures[target].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    document.addEventListener('astro:before-swap', () => controller.abort(), { once: true });
+  }
+
+  initKeyboardNav();
+  document.addEventListener('astro:page-load', initKeyboardNav);
+</script>

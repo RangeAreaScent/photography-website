@@ -1,18 +1,46 @@
 ---
+import { getCollection } from 'astro:content';
+import { Picture } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+
+const monthly = (await getCollection('monthly')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const latest = monthly[0];
+const fmt = latest?.data.date.toLocaleString('en-US', { year: 'numeric', month: 'long' });
 ---
 
 <Base title="Not here — Doohee Lee" description="A page that does not exist on this archive.">
   <section class="not-found">
     <p class="line">Nothing here.</p>
     <p class="back"><a href="/">Return</a></p>
+
+    {
+      latest && (
+        <figure class="photo">
+          <a href={`/monthly/${latest.id}`} aria-label={`Latest monthly photograph — ${fmt}`}>
+            <Picture
+              src={latest.data.photo}
+              alt={latest.data.caption ?? fmt ?? 'Latest photograph'}
+              formats={['avif', 'webp']}
+              widths={[800, 1280, 1920]}
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              quality={82}
+            />
+          </a>
+          <figcaption>
+            {latest.data.caption && <span class="ph-title">{latest.data.caption}</span>}
+            <span class="ph-caption">{fmt}</span>
+          </figcaption>
+        </figure>
+      )
+    }
   </section>
 </Base>
 
 <style>
   .not-found {
-    padding-top: 6rem;
-    max-width: 30rem;
+    padding-top: 4rem;
   }
 
   .line {
@@ -22,7 +50,7 @@ import Base from '../layouts/Base.astro';
   }
 
   .back {
-    margin: 0;
+    margin: 0 0 4rem;
     font-size: 0.9375rem;
     font-style: italic;
     color: var(--text-muted);
@@ -35,5 +63,38 @@ import Base from '../layouts/Base.astro';
   .back a:hover {
     color: var(--text);
     border-color: var(--text);
+  }
+
+  .photo {
+    margin: 0;
+    text-align: center;
+  }
+
+  .photo :global(img) {
+    max-width: 100%;
+    max-height: 60vh;
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .photo figcaption {
+    margin-top: 0.875rem;
+    text-align: left;
+    font-size: 0.9375rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .ph-title {
+    color: var(--text);
+  }
+
+  .ph-caption {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-style: italic;
   }
 </style>
