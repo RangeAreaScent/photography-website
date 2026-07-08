@@ -140,6 +140,13 @@
     opacity: 0; transition: opacity 120ms; font-size: 0.7rem;
   }
   .photo-fields .filename:hover::after { opacity: 0.6; }
+  .exif-meta {
+    margin: 0;
+    padding: 0 0.3rem;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    line-height: 1.3;
+  }
   .filename-edit {
     font: inherit; font-size: 0.75rem; font-family: monospace;
     padding: 0.2rem 0.3rem !important; width: auto !important;
@@ -467,16 +474,7 @@ function renderWorksForm(el, c) {
   renderCandidates();
   bindDropZone(uploadWorksPhotos);
 
-  Sortable.create(document.getElementById('photo-list'), {
-    handle: '.drag-handle',
-    animation: 150,
-    ghostClass: 'sortable-ghost',
-    onEnd: (e) => {
-      const photos = c.data.photos;
-      const [moved] = photos.splice(e.oldIndex, 1);
-      photos.splice(e.newIndex, 0, moved);
-    },
-  });
+  initSortable();
 
   document.getElementById('publish-btn').onclick = publish;
   document.getElementById('refresh-btn').onclick = async () => {
@@ -490,6 +488,23 @@ function renderWorksForm(el, c) {
   };
   const delBtn = document.getElementById('delete-series-btn');
   if (delBtn) delBtn.onclick = deleteSeries;
+}
+
+function initSortable() {
+  const list = document.getElementById('photo-list');
+  if (!list) return;
+  Sortable.get(list)?.destroy();
+  Sortable.create(list, {
+    handle: '.drag-handle',
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    onEnd: (e) => {
+      if (e.oldIndex === e.newIndex) return;
+      const photos = state.current.data.photos;
+      const [moved] = photos.splice(e.oldIndex, 1);
+      photos.splice(e.newIndex, 0, moved);
+    },
+  });
 }
 
 function renderPhotoList() {
@@ -548,6 +563,42 @@ function renderPhotoList() {
       }
     };
   });
+
+  initSortable();
+  loadExifForVisible(list, c.slug);
+}
+
+// Lazy-fetch EXIF for each photo row and inject a small line under the filename.
+async function loadExifForVisible(root, slug) {
+  const rows = root.querySelectorAll('.filename[data-filename]');
+  for (const el of rows) {
+    if (el.dataset.exifLoaded) continue;
+    el.dataset.exifLoaded = '1';
+    const filename = el.dataset.filename;
+    const stage = el.dataset.stage;
+    const subpath = stage === 'candidates' ? `_candidates/${filename}` : filename;
+    try {
+      const r = await fetch(`/api/exif/works/${slug}/${encodeURIComponent(subpath)}`);
+      if (!r.ok) continue;
+      const { datetime, city } = await r.json();
+      const bits = [];
+      if (datetime) bits.push(formatExifDate(datetime));
+      if (city) bits.push(city);
+      if (bits.length === 0) continue;
+      const meta = document.createElement('p');
+      meta.className = 'exif-meta';
+      meta.textContent = bits.join(' · ');
+      el.after(meta);
+    } catch {
+      // silent — EXIF is best-effort
+    }
+  }
+}
+
+function formatExifDate(dt) {
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return String(dt);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function renderUntracked() {
@@ -618,6 +669,8 @@ function renderUntracked() {
     renderPhotoList();
     renderUntracked();
   };
+
+  loadExifForVisible(el, c.slug);
 }
 
 function renderCandidates() {
@@ -641,7 +694,7 @@ function renderCandidates() {
           <li class="photo-row no-handle candidate">
             <img class="photo-thumb" src="/thumb/works/${c.slug}/_candidates/${f}?t=${Date.now()}" loading="lazy" />
             <div class="photo-fields">
-              <p class="filename">${f}</p>
+              <p class="filename" data-filename="${f}" data-stage="candidates">${f}</p>
             </div>
             <div class="photo-actions">
               <button class="small-btn" data-promote="${f}">+ add to series</button>
@@ -660,6 +713,8 @@ function renderCandidates() {
   el.querySelectorAll('button[data-archive-cand]').forEach((btn) => {
     btn.onclick = (e) => archiveCandidate(e.target.dataset.archiveCand);
   });
+
+  loadExifForVisible(el, c.slug);
 }
 
 // ---------- file actions ----------
@@ -793,15 +848,25 @@ function startRename(el) {
 function bindDropZone(uploadFn) {
   const zone = document.getElementById('drop-zone');
   const input = document.getElementById('file-input');
-  zone.onclick = () => input.click();
-  input.onchange = () => uploadFn([...input.files]);
-  zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
-  zone.ondragleave = () => zone.classList.remove('drag-over');
-  zone.ondrop = (e) => {
-    e.preventDefault();
+  if (!zone || !input) return;
+
+  zone.onclick = (e) => { if (e.target !== input) input.click(); };
+  input.onchange = () => { if (input.files.length) uploadFn([...input.files]); };
+
+  const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+  zone.addEventListener('dragenter', (e) => { stop(e); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragover', (e) => { stop(e); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', (e) => { stop(e); zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', (e) => {
+    stop(e);
     zone.classList.remove('drag-over');
-    uploadFn([...e.dataTransfer.files]);
-  };
+    const files = [...(e.dataTransfer?.files ?? [])].filter((f) => /\.(jpe?g)$/i.test(f.name));
+    if (!files.length) {
+      setStatus('Drop JPEG files only (dropped ' + (e.dataTransfer?.files?.length ?? 0) + ' non-JPEG).', 'error');
+      return;
+    }
+    uploadFn(files);
+  });
 }
 
 async function uploadMonthlyPhoto(files) {
@@ -828,15 +893,19 @@ async function uploadWorksPhotos(files) {
   fd.append('section', 'works');
   fd.append('slug', c.slug);
   for (const f of files) fd.append('photos', f);
-  setStatus(`Uploading ${files.length}…`);
-  const { filenames } = await api('/api/upload', { method: 'POST', body: fd });
-  c.data.photos = c.data.photos ?? [];
-  for (const fn of filenames) {
-    const cleanName = fn.replace(/\.(JPE?G)$/i, '.jpg');
-    c.data.photos.push({ src: `./${c.slug}/${cleanName}` });
+  setStatus(`Uploading ${files.length} file${files.length === 1 ? '' : 's'}…`);
+  try {
+    const { filenames } = await api('/api/upload', { method: 'POST', body: fd });
+    c.data.photos = c.data.photos ?? [];
+    for (const fn of filenames) {
+      const cleanName = fn.replace(/\.(JPE?G)$/i, '.jpg');
+      c.data.photos.push({ src: `./${c.slug}/${cleanName}` });
+    }
+    await refreshEntry();
+    setStatus(`Uploaded ${filenames.length} — added to series. Publish to push.`, 'success');
+  } catch (e) {
+    setStatus('Upload failed: ' + e.message, 'error');
   }
-  await refreshEntry();
-  setStatus(`Uploaded ${filenames.length}.`, 'success');
 }
 
 // ---------- publish ----------
@@ -879,6 +948,10 @@ function slugify(s) {
 
 document.getElementById('new-monthly').onclick = newMonthly;
 document.getElementById('new-works').onclick = newWorks;
+
+// Prevent the browser from opening a dropped file if it lands outside a drop zone.
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => e.preventDefault());
 
 loadState();
 </script>

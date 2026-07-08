@@ -6,6 +6,7 @@ import express from 'express';
 import multer from 'multer';
 import matter from 'gray-matter';
 import sharp from 'sharp';
+import exifr from 'exifr';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +38,28 @@ async function exists(p) {
 
 function cleanFilename(name) {
   return name.toLowerCase().replace(/\.(jpe?g)$/i, '.jpg');
+}
+
+// Run a git subcommand capturing stdout/stderr as strings.
+// Throws on non-zero exit unless allowFail is true (then returns { ok: false }).
+function runGit(args, { allowFail = false } = {}) {
+  try {
+    const stdout = execSync(`git ${args.map((a) => `'${a.replace(/'/g, "'\\''")}'`).join(' ')}`, {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return { ok: true, stdout, stderr: '' };
+  } catch (e) {
+    if (allowFail) {
+      return { ok: false, stdout: String(e.stdout ?? ''), stderr: String(e.stderr ?? e.message) };
+    }
+    const msg = String(e.stderr ?? e.stdout ?? e.message);
+    const err = new Error(`git ${args.join(' ')} failed: ${msg}`);
+    err.stdout = e.stdout;
+    err.stderr = e.stderr;
+    throw err;
+  }
 }
 
 async function listWorks() {
@@ -149,6 +172,71 @@ app.get('/api/entry/:section/:slug', async (req, res) => {
 });
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// ---------- EXIF ----------
+//
+// Returns { datetime, city, gps } for a single photo. `city` requires GPS
+// tags in the file and a successful Nominatim lookup. Reverse-geocoding is
+// cached in memory (keyed on coord rounded to 3 decimal places ≈ 100m) so a
+// series of nearby photos hits the network at most once.
+const geoCache = new Map();
+let lastGeoRequestAt = 0;
+
+async function reverseGeocode(lat, lon) {
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+  if (geoCache.has(key)) return geoCache.get(key);
+
+  // Nominatim policy: max 1 request/second.
+  const wait = Math.max(0, 1100 - (Date.now() - lastGeoRequestAt));
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastGeoRequestAt = Date.now();
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&accept-language=en`;
+    const r = await fetch(url, { headers: { 'User-Agent': 'd612-admin/1.0 (personal photography site)' } });
+    if (!r.ok) throw new Error(`Nominatim ${r.status}`);
+    const j = await r.json();
+    const a = j.address ?? {};
+    const city = a.city ?? a.town ?? a.village ?? a.hamlet ?? a.county ?? null;
+    const region = a.state ?? a.region ?? a.country ?? null;
+    const label = city && region ? `${city}, ${region}` : city ?? region ?? null;
+    geoCache.set(key, label);
+    return label;
+  } catch {
+    geoCache.set(key, null);
+    return null;
+  }
+}
+
+app.get('/api/exif/:section/:slug/:filename', async (req, res) => {
+  const { section, slug, filename } = req.params;
+  const candidates =
+    section === 'monthly'
+      ? [path.join(ORIGINALS, 'monthly', filename)]
+      : [
+          path.join(ORIGINALS, 'works', slug, filename),
+          path.join(ORIGINALS, 'works', slug, CANDIDATES_DIR, filename),
+        ];
+
+  for (const filePath of candidates) {
+    try {
+      const raw = await exifr.parse(filePath, { gps: true, pick: ['DateTimeOriginal', 'CreateDate', 'DateTime', 'latitude', 'longitude'] });
+      if (!raw) continue;
+      const dt = raw.DateTimeOriginal ?? raw.CreateDate ?? raw.DateTime ?? null;
+      const datetime = dt instanceof Date ? dt.toISOString() : dt;
+      let city = null;
+      let gps = null;
+      if (typeof raw.latitude === 'number' && typeof raw.longitude === 'number') {
+        gps = { lat: raw.latitude, lon: raw.longitude };
+        city = await reverseGeocode(raw.latitude, raw.longitude);
+      }
+      return res.json({ datetime, city, gps });
+    } catch {
+      // try next
+    }
+  }
+  res.status(404).json({ error: 'No EXIF found (or file missing).' });
+});
 
 // Thumbnail proxy — tries originals/ first, falls back to src/content/.
 app.get(/^\/thumb\/(.+)$/, async (req, res) => {
@@ -369,13 +457,19 @@ app.delete('/api/series/:slug', async (req, res) => {
       await fs.rm(path.join(CONTENT, 'works', slug), { recursive: true, force: true });
     } catch {}
 
-    execSync('git add -A', { cwd: ROOT });
     try {
-      execSync(`git commit -m "works: delete ${slug}"`, { cwd: ROOT });
+      runGit(['add', '-A']);
+      const commit = runGit(['commit', '-m', `works: delete ${slug}`], { allowFail: true });
+      if (!commit.ok && !/nothing to commit/.test(commit.stdout + commit.stderr)) {
+        throw new Error(`git commit failed: ${commit.stderr || commit.stdout}`);
+      }
+      runGit(['push']);
     } catch (e) {
-      if (!/nothing to commit/.test(String(e.stdout) + String(e.stderr))) throw e;
+      return res.status(500).json({
+        error: `Series files removed locally, but git sync failed: ${e.message}. Fix manually and rerun.`,
+        archivedTo,
+      });
     }
-    execSync('git push', { cwd: ROOT });
 
     res.json({ ok: true, archivedTo });
   } catch (e) {
