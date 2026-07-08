@@ -96,13 +96,20 @@
     color: var(--text-muted); margin: 0;
   }
   .drop-zone {
+    display: block;
     border: 1.5px dashed var(--border); border-radius: 6px;
     padding: 2rem; text-align: center; color: var(--text-muted);
     cursor: pointer; transition: border-color 120ms, background 120ms;
     margin-bottom: 1.5rem;
   }
   .drop-zone.drag-over { border-color: var(--text); background: var(--surface); }
-  .drop-zone input { display: none; }
+  .drop-zone input[type="file"] {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
   .photo-list {
     list-style: none; margin: 0; padding: 0;
     display: flex; flex-direction: column; gap: 0.75rem;
@@ -202,7 +209,7 @@
 <body>
 <div class="app">
   <aside class="sidebar">
-    <h1 class="brand">d612 — admin</h1>
+    <h1 class="brand">d612 — admin <span style="font-size: 0.65rem; font-weight: 400; color: var(--text-faint);">build 2026-07-08b</span></h1>
 
     <div class="section">
       <div class="section-head">
@@ -364,10 +371,10 @@ function renderMonthlyForm(el, c) {
 
     <div class="photos-section">
       <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">Photo</label>
-      <div class="drop-zone" id="drop-zone">
+      <label class="drop-zone" id="drop-zone" for="file-input">
         <input type="file" accept="image/jpeg,image/jpg" id="file-input" />
-        ${c.data.photo && !c.isNew ? `Current: <code>${c.data.photo}</code> — drop to replace` : 'Drop a JPEG here, or click to select'}
-      </div>
+        <span>${c.data.photo && !c.isNew ? `Current: <code>${c.data.photo}</code> — drop to replace` : 'Drop a JPEG here, or click to select'}</span>
+      </label>
     </div>
 
     <div class="actions">
@@ -429,10 +436,10 @@ function renderWorksForm(el, c) {
         <span class="status" style="font-size: 0.75rem;" id="in-series-count">${(c.data.photos ?? []).length}</span>
       </div>
 
-      <div class="drop-zone" id="drop-zone">
+      <label class="drop-zone" id="drop-zone" for="file-input">
         <input type="file" accept="image/jpeg,image/jpg" id="file-input" multiple />
-        Drop JPEGs here, or click to select
-      </div>
+        <span>Drop JPEGs here, or click to select</span>
+      </label>
 
       <ul class="photo-list" id="photo-list"></ul>
 
@@ -850,8 +857,13 @@ function bindDropZone(uploadFn) {
   const input = document.getElementById('file-input');
   if (!zone || !input) return;
 
-  zone.onclick = (e) => { if (e.target !== input) input.click(); };
-  input.onchange = () => { if (input.files.length) uploadFn([...input.files]); };
+  // Native <label for="file-input"> opens the picker on click — no JS click
+  // handler needed. Adding one caused a synthetic click loop with the label's
+  // native activation that swallowed the resulting change event.
+  input.onchange = () => {
+    if (input.files.length) uploadFn([...input.files]);
+    input.value = '';
+  };
 
   const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
   zone.addEventListener('dragenter', (e) => { stop(e); zone.classList.add('drag-over'); });
@@ -860,9 +872,10 @@ function bindDropZone(uploadFn) {
   zone.addEventListener('drop', (e) => {
     stop(e);
     zone.classList.remove('drag-over');
-    const files = [...(e.dataTransfer?.files ?? [])].filter((f) => /\.(jpe?g)$/i.test(f.name));
+    const all = [...(e.dataTransfer?.files ?? [])];
+    const files = all.filter((f) => /\.(jpe?g)$/i.test(f.name));
     if (!files.length) {
-      setStatus('Drop JPEG files only (dropped ' + (e.dataTransfer?.files?.length ?? 0) + ' non-JPEG).', 'error');
+      setStatus(all.length ? `Drop JPEG files only (got ${all.length} non-JPEG).` : 'No files detected in drop.', 'error');
       return;
     }
     uploadFn(files);
@@ -880,9 +893,14 @@ async function uploadMonthlyPhoto(files) {
   fd.append('slug', c.slug);
   fd.append('photos', renamed);
   setStatus('Uploading…');
-  await api('/api/upload', { method: 'POST', body: fd });
-  setStatus('Uploaded.', 'success');
-  renderMain();
+  try {
+    await api('/api/upload', { method: 'POST', body: fd });
+    setStatus(`Uploaded ${renamed.name}. Publish to push to d612.space.`, 'success');
+    const zoneSpan = document.querySelector('#drop-zone span');
+    if (zoneSpan) zoneSpan.textContent = `Uploaded: ${renamed.name} — drop again to replace`;
+  } catch (e) {
+    setStatus('Upload failed: ' + e.message, 'error');
+  }
 }
 
 async function uploadWorksPhotos(files) {
