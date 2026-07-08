@@ -39,15 +39,17 @@ const fmtMonth = (d: Date) =>
     <a href="/monthly" class:list={['nav-link', { active: isActive('/monthly') }]}>Monthly</a>
     <a href="/about" class:list={['nav-link', { active: isActive('/about') }]}>About</a>
     <a href="mailto:hello@example.com" class="nav-link">Contact</a>
-    <a href="https://instagram.com" class="nav-link" rel="me noopener">Instagram</a>
   </nav>
   <div class="player" transition:persist="bg-player">
     <audio id="bg-audio" src="/audio/sakartvelo.mp3" preload="none" loop></audio>
-    <button id="bg-toggle" class="play-btn" type="button" aria-label="Play music">
+    <button id="bg-toggle" class="play-btn off" type="button" aria-label="Play music">
       <span class="play-icon" aria-hidden="true">♪</span>
-      <span class="play-title">music</span>
     </button>
   </div>
+
+  {inWorks && (
+    <p class="hint">← → to step through photos</p>
+  )}
 
   <p class="meta">© {new Date().getFullYear()}  Doohee Lee</p>
 </aside>
@@ -91,9 +93,9 @@ const fmtMonth = (d: Date) =>
     position: fixed;
     top: 0;
     left: 0;
-    width: 200px;
+    width: 170px;
     height: 100vh;
-    padding: 2.5rem 1.75rem;
+    padding: 2.5rem 1.25rem 2.5rem 1.75rem;
     display: flex;
     flex-direction: column;
     background: var(--bg);
@@ -111,10 +113,10 @@ const fmtMonth = (d: Date) =>
   nav {
     display: flex;
     flex-direction: column;
-    gap: 0.05rem;
+    gap: 0.3rem;
     font-size: 1rem;
     font-style: italic;
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
   .nav-link {
@@ -156,10 +158,7 @@ const fmtMonth = (d: Date) =>
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
     color: var(--text-muted);
-    font-size: 0.75rem;
-    font-style: italic;
     transition: color 120ms ease;
   }
 
@@ -168,15 +167,33 @@ const fmtMonth = (d: Date) =>
   }
 
   .play-icon {
+    position: relative;
     display: inline-block;
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-style: normal;
     line-height: 1;
-    transform: translateY(1px);
   }
 
-  .play-title {
-    line-height: 1;
+  .play-btn.off .play-icon::after {
+    content: '';
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: 50%;
+    height: 1px;
+    background: currentColor;
+    transform: rotate(-40deg);
+    transform-origin: center;
+    pointer-events: none;
+  }
+
+  .hint {
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    font-style: italic;
+    line-height: 1.4;
   }
 
   .meta {
@@ -191,10 +208,10 @@ const fmtMonth = (d: Date) =>
   .sub-nav {
     position: fixed;
     top: 0;
-    left: 200px;
-    width: 170px;
+    left: 170px;
+    width: 140px;
     height: 100vh;
-    padding: 6.1rem 1.5rem 2.5rem;
+    padding: 6.1rem 0.75rem 2.5rem 0.5rem;
     background: var(--bg);
     z-index: 9;
   }
@@ -236,7 +253,7 @@ const fmtMonth = (d: Date) =>
     color: var(--text);
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 900px) {
     .site-nav {
       position: static;
       width: 100%;
@@ -275,6 +292,10 @@ const fmtMonth = (d: Date) =>
       display: none;
     }
 
+    .hint {
+      display: none;
+    }
+
     .sub-nav {
       position: static;
       width: 100%;
@@ -303,9 +324,9 @@ const fmtMonth = (d: Date) =>
     }
 
     .player {
-      order: 99;
-      flex-basis: 100%;
-      margin-top: 0.5rem;
+      order: 50;
+      margin-left: auto;
+      margin-top: 0;
       padding-top: 0;
     }
   }
@@ -322,9 +343,8 @@ const fmtMonth = (d: Date) =>
     if (button.dataset.bound === '1') return;
     button.dataset.bound = '1';
 
-    const icon = button.querySelector('.play-icon') as HTMLElement | null;
     const sync = () => {
-      if (icon) icon.textContent = audio.paused ? '♪' : '♫';
+      button.classList.toggle('off', audio.paused);
       button.setAttribute('aria-label', audio.paused ? 'Play music' : 'Pause music');
     };
 
