@@ -52,12 +52,17 @@ const ogImage = await ogImageUrl(portrait, Astro.site);
   .name {
     font-size: 1.25rem;
     font-weight: 500;
-    margin: 0 0 1.5rem;
+    margin: 0;
     color: var(--text);
   }
 
   .bio {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
     margin-bottom: 2.5rem;
+    border-top: 0.5px solid var(--rule);
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
   }
 
   .bio p {

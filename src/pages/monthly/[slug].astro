@@ -83,19 +83,28 @@ const hasNote = (entry.body ?? '').trim().length > 0;
 
   .title {
     margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--text);
   }
 
   .when {
     margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
     color: var(--text-muted);
   }
 
   .note {
-    margin: 2rem auto 0;
-    max-width: 28rem;
+    margin: 1.5rem auto 0;
+    padding-top: 1.25rem;
+    max-width: 34rem;
+    text-align: left;
     color: var(--text);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.0625rem;
     line-height: 1.7;
+    border-top: 0.5px solid var(--rule);
   }
 
   .note :global(p) {

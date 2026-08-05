@@ -5,8 +5,8 @@
   --text-faint: #9aa0a0;
   --rule: #cdd2d2;
 
-  --font-serif: 'IBM Plex Sans', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'EB Garamond', Georgia, serif;
+  --font-sans: 'Instrument Sans', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --measure: 56rem;
   --pad-x: clamp(1.5rem, 4vw, 3rem);

@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { Picture } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { ogImageUrl } from '../lib/og';
@@ -10,6 +10,8 @@ const monthly = (await getCollection('monthly')).sort(
 const latest = monthly[0];
 const fmt = latest?.data.date.toLocaleString('en-US', { year: 'numeric', month: 'long' });
 const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undefined;
+const { Content } = latest ? await render(latest) : { Content: null };
+const hasNote = latest ? (latest.body ?? '').trim().length > 0 : false;
 ---
 
 <Base
@@ -34,18 +36,15 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
           <figcaption>
             {latest.data.caption && <p class="title">{latest.data.caption}</p>}
             <p class="when">{fmt}</p>
+            {hasNote && Content && (
+              <div class="note">
+                <Content />
+              </div>
+            )}
           </figcaption>
         </figure>
       )
     }
-
-    <div class="intro">
-      <p>
-        Photographs by Doohee Lee — pursued as a part of everyday life.
-        Series under <a href="/works">Works</a>, a single photograph each
-        month in <a href="/monthly">Monthly</a>.
-      </p>
-    </div>
   </section>
 </Base>
 
@@ -76,30 +75,35 @@ const ogImage = latest ? await ogImageUrl(latest.data.photo, Astro.site) : undef
 
   .title {
     margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--text);
   }
 
   .when {
     margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
     color: var(--text-muted);
   }
 
-  .intro {
-    max-width: 30rem;
-    margin: 4rem 0 0;
-  }
-
-  .intro p {
-    margin: 0 0 1rem;
-    line-height: 1.7;
+  .note {
+    margin: 1.5rem auto 0;
+    padding-top: 1.25rem;
+    max-width: 34rem;
+    text-align: left;
     color: var(--text);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    border-top: 0.5px solid var(--rule);
   }
 
-  .intro a {
-    border-bottom: 0.5px solid var(--rule);
+  .note :global(p) {
+    margin: 0 0 1rem;
   }
 
-  .intro a:hover {
-    border-color: var(--text);
+  .note :global(p:last-child) {
+    margin-bottom: 0;
   }
 </style>
