@@ -7,7 +7,7 @@
     "prepare-photos": "node scripts/prepare-photos.mjs",
     "admin": "node scripts/admin.mjs",
     "predev": "npm run prepare-photos",
-    "prebuild": "npm run prepare-photos",
+    "prebuild": "npm run prepare-photos && node scripts/write-monthly-redirect.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -16,12 +16,12 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^5.14.0",
+    "gray-matter": "^4.0.3",
     "sharp": "^0.35.2"
   },
   "devDependencies": {
     "exifr": "^7.1.3",
     "express": "^5.2.1",
-    "gray-matter": "^4.0.3",
     "multer": "^2.2.0",
     "open": "^11.0.0"
   }
