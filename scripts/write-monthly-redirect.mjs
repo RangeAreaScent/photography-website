@@ -4,8 +4,16 @@
 // for Astro.redirect() (no adapter is configured), which visibly flashes a
 // "Redirecting from X to Y" fallback message before navigating. Vercel's own
 // redirects (vercel.json) happen at the edge, before any HTML is served, so
-// there's no flash. Runs in prebuild so vercel.json always reflects whatever
-// the latest monthly entry is at build/deploy time.
+// there's no flash.
+//
+// IMPORTANT: Vercel's "vercel build" step reads vercel.json before running
+// npm run build (and therefore before this script, which runs in prebuild).
+// A vercel.json regenerated mid-build is invisible to that deployment's
+// routing — it must already be committed at checkout time. This script is
+// wired into BOTH prebuild (keeps local builds/previews correct) and the
+// admin GUI's publish flow (regenerates + commits + pushes on every
+// publish, which is what actually gets it in front of Vercel in time).
+// vercel.json is tracked in git — don't gitignore it again.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';

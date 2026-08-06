@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/monthly",
+      "destination": "/monthly/2026-07",
+      "permanent": false
+    },
+    {
+      "source": "/monthly/",
+      "destination": "/monthly/2026-07",
+      "permanent": false
+    }
+  ]
+}

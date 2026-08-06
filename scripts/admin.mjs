@@ -492,6 +492,7 @@ app.post('/api/publish', async (req, res) => {
     await fs.writeFile(filePath, md);
 
     execSync('npm run prepare-photos', { cwd: ROOT, stdio: 'inherit' });
+    execSync('node scripts/write-monthly-redirect.mjs', { cwd: ROOT, stdio: 'inherit' });
 
     execSync('git add -A', { cwd: ROOT });
     const subject = section === 'monthly' ? `monthly: ${slug}` : `works: ${slug}`;
