@@ -58,3 +58,10 @@ img {
 .faint {
   color: var(--text-faint);
 }
+
+/* Slower, gentler page transitions (ClientRouter default is ~250ms). */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
