@@ -45,8 +45,8 @@ const fmtMonth = (d: Date) =>
   <nav aria-label="Primary">
     <a href="/works" class:list={['nav-link', { active: isActive('/works') }]}>Works</a>
     <a href="/monthly" class:list={['nav-link', { active: isActive('/monthly') }]}>Monthly</a>
-    <a href="/about" class:list={['nav-link', { active: isActive('/about') }]}>About</a>
     <a href="/drift" class:list={['nav-link', { active: isActive('/drift') }]}>Drift</a>
+    <a href="/about" class:list={['nav-link', { active: isActive('/about') }]}>About</a>
   </nav>
   <div class="player" transition:persist="bg-player">
     <audio id="bg-audio" src="/audio/sakartvelo.mp3" preload="none" loop></audio>
