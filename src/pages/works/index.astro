@@ -26,6 +26,9 @@ const description = first
         <header class="series-head">
           <h1 class="title">{first.data.title}</h1>
           <span class="year muted">{first.data.year}</span>
+          {first.data.photos.length > 0 && (
+            <button class="focus-trigger" type="button">Slideshow</button>
+          )}
           {first.data.intro && <p class="intro muted">{first.data.intro}</p>}
         </header>
 
@@ -158,6 +161,7 @@ const description = first
     document.addEventListener(
       'keydown',
       (e) => {
+        if (document.body.classList.contains('focus-open')) return; // slideshow handles its own arrows
         const t = e.target as HTMLElement;
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
 
@@ -184,4 +188,10 @@ const description = first
 
   initKeyboardNav();
   document.addEventListener('astro:page-load', initKeyboardNav);
+</script>
+
+<script>
+  import { initFocusMode } from '../../scripts/focus-mode';
+  initFocusMode();
+  document.addEventListener('astro:page-load', initFocusMode);
 </script>
