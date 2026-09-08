@@ -1,38 +1,46 @@
-// Focus/slideshow mode for works galleries. Shared by works/index.astro and
-// works/[slug].astro (both render the same .series-head/.library markup) so
-// the feature can't drift between them the way styling has before.
+// Shared full-viewport slideshow engine — dark overlay, one photo at a
+// time, slow crossfade. Two consumers build on this same core so the
+// feature can't drift between them the way page styling has before:
 //
-// Dark full-viewport overlay, one photo at a time, slow crossfade. Reuses
-// whatever <img> the gallery already loaded (currentSrc) rather than
-// fetching anything new. Music keeps playing untouched — this is a same-page
-// overlay, not a navigation.
+//   - initFocusMode(): per-series "Slideshow" button on works/index.astro
+//     and works/[slug].astro (identical markup, reuses whatever <img> the
+//     gallery already loaded).
+//   - Drift (src/pages/drift.astro): sitewide random slideshow across every
+//     works + monthly photo, with idle auto-advance and music auto-started.
+//
+// Music is never paused/resumed by opening or closing — the overlay's own
+// button just reflects the one shared <audio id="bg-audio"> element's
+// state, same as Header.astro's toggle. No coupling between buttons.
 
-export function initFocusMode() {
-  const library = document.querySelector<HTMLElement>('.library');
-  const trigger = document.querySelector<HTMLButtonElement>('.focus-trigger');
-  if (!library || !trigger) return;
+export interface Slide {
+  src: string;
+  alt: string;
+  title: string;
+}
 
-  // astro:page-load fires on the initial load too, in addition to the
-  // direct call right below — guard so we don't build a second overlay
-  // and double-bind the trigger.
-  if (trigger.dataset.bound === '1') return;
-  trigger.dataset.bound = '1';
+export interface FocusPlayerOptions {
+  /** Auto-advance to the next slide after this many ms of inactivity. Any
+   *  manual navigation (keyboard/swipe/click) resets the timer. Omit for
+   *  manual-only browsing. */
+  autoAdvanceMs?: number;
+  /** Try to start music when the overlay opens (subject to the browser's
+   *  autoplay policy — silently ignored if blocked). */
+  autoPlayMusic?: boolean;
+  /** Called instead of the default close behavior (which just fades the
+   *  overlay out). Drift uses this to navigate back to "/" since it has no
+   *  underlying gallery to reveal. */
+  onClose?: () => void;
+  ariaLabel?: string;
+}
 
-  const figures = Array.from(library.querySelectorAll<HTMLElement>('.figure'));
-  if (figures.length === 0) return;
-
-  const titleText = document.querySelector('.series-head .title')?.textContent ?? '';
-
-  const controller = new AbortController();
-  const { signal } = controller;
-
+export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions = {}) {
   const overlay = document.createElement('div');
   overlay.className = 'focus-overlay';
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-label', titleText ? `${titleText} — slideshow` : 'Slideshow');
+  overlay.setAttribute('aria-label', options.ariaLabel ?? 'Slideshow');
   overlay.innerHTML = `
-    <p class="focus-title">${titleText}</p>
+    <p class="focus-title"></p>
     <div class="focus-stage">
       <img class="focus-img focus-img-a" alt="" />
       <img class="focus-img focus-img-b" alt="" />
@@ -47,6 +55,7 @@ export function initFocusMode() {
   `;
   document.body.appendChild(overlay);
 
+  const titleEl = overlay.querySelector<HTMLElement>('.focus-title')!;
   const imgA = overlay.querySelector<HTMLImageElement>('.focus-img-a')!;
   const imgB = overlay.querySelector<HTMLImageElement>('.focus-img-b')!;
   const counter = overlay.querySelector<HTMLElement>('.focus-counter')!;
@@ -57,58 +66,66 @@ export function initFocusMode() {
   let inactiveLayer = imgB;
   let index = 0;
   let isOpen = false;
-
-  const srcFor = (i: number) => {
-    const img = figures[i].querySelector('img');
-    return img?.currentSrc || img?.src || '';
-  };
-  const altFor = (i: number) => figures[i].querySelector('img')?.alt ?? '';
+  let advanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   const preload = (i: number) => {
-    if (i < 0 || i >= figures.length) return;
-    const src = srcFor(i);
-    if (src) new Image().src = src;
+    if (i < 0 || i >= slides.length) return;
+    new Image().src = slides[i].src;
   };
 
+  function scheduleAdvance() {
+    if (advanceTimer) clearTimeout(advanceTimer);
+    if (!options.autoAdvanceMs || slides.length < 2) return;
+    advanceTimer = setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        show(index + 1);
+      } else {
+        scheduleAdvance(); // tab hidden — don't skip ahead, just check again later
+      }
+    }, options.autoAdvanceMs);
+  }
+
   function show(i: number) {
-    index = (i + figures.length) % figures.length;
-    inactiveLayer.src = srcFor(index);
-    inactiveLayer.alt = altFor(index);
+    index = (i + slides.length) % slides.length;
+    const slide = slides[index];
+    inactiveLayer.src = slide.src;
+    inactiveLayer.alt = slide.alt;
     inactiveLayer.classList.add('visible');
     activeLayer.classList.remove('visible');
     [activeLayer, inactiveLayer] = [inactiveLayer, activeLayer];
 
-    counter.textContent = `${index + 1} / ${figures.length}`;
+    titleEl.textContent = slide.title;
+    counter.textContent = `${index + 1} / ${slides.length}`;
     preload(index - 1);
     preload(index + 1);
-  }
-
-  function findCurrentIndex() {
-    const anchor = 120;
-    let idx = 0;
-    for (let i = 0; i < figures.length; i++) {
-      if (figures[i].getBoundingClientRect().top <= anchor) idx = i;
-    }
-    return idx;
+    scheduleAdvance();
   }
 
   function open(startIndex: number) {
     isOpen = true;
     document.body.classList.add('focus-open');
     document.documentElement.style.overflow = 'hidden';
-    // Set the first frame before the overlay fades in, so there's no flash
-    // of an empty stage during the overlay's own opacity transition.
-    index = (startIndex + figures.length) % figures.length;
-    activeLayer.src = srcFor(index);
-    activeLayer.alt = altFor(index);
+    index = (startIndex + slides.length) % slides.length;
+    const slide = slides[index];
+    activeLayer.src = slide.src;
+    activeLayer.alt = slide.alt;
     activeLayer.classList.add('visible');
-    counter.textContent = `${index + 1} / ${figures.length}`;
+    titleEl.textContent = slide.title;
+    counter.textContent = `${index + 1} / ${slides.length}`;
     preload(index - 1);
     preload(index + 1);
     // Force layout before adding .open so its transition actually runs.
     overlay.getBoundingClientRect();
     overlay.classList.add('open');
     closeBtn.focus();
+    scheduleAdvance();
+
+    if (options.autoPlayMusic) {
+      const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
+      audio?.play().catch(() => {
+        // autoplay policy — ignore, user can click the music button
+      });
+    }
   }
 
   function close() {
@@ -116,14 +133,40 @@ export function initFocusMode() {
     document.body.classList.remove('focus-open');
     document.documentElement.style.overflow = '';
     overlay.classList.remove('open');
+    if (advanceTimer) clearTimeout(advanceTimer);
+    options.onClose?.();
   }
 
-  trigger.addEventListener('click', () => open(findCurrentIndex()), { signal });
-  closeBtn.addEventListener('click', close, { signal });
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
 
-  // Mirrors Header.astro's own music toggle — both buttons just reflect the
-  // one shared <audio id="bg-audio"> element's state, so they stay in sync
-  // without needing to know about each other.
+  document.addEventListener('keydown', (e) => {
+    if (!isOpen) return;
+    if (e.key === 'Escape') {
+      close();
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'j') {
+      e.preventDefault();
+      show(index + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'k') {
+      e.preventDefault();
+      show(index - 1);
+    }
+  });
+
+  let touchStartX = 0;
+  overlay.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+  });
+  overlay.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) show(dx < 0 ? index + 1 : index - 1);
+  });
+
+  // Mirrors Header.astro's own music toggle — see file header comment.
   const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
   if (audio) {
     const syncMusicBtn = () => {
@@ -140,45 +183,69 @@ export function initFocusMode() {
       } else {
         audio.pause();
       }
-    }, { signal });
-    audio.addEventListener('play', syncMusicBtn, { signal });
-    audio.addEventListener('pause', syncMusicBtn, { signal });
+    });
+    audio.addEventListener('play', syncMusicBtn);
+    audio.addEventListener('pause', syncMusicBtn);
     syncMusicBtn();
   } else {
     musicBtn.style.display = 'none';
   }
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) close();
-  }, { signal });
 
-  document.addEventListener('keydown', (e) => {
-    if (!isOpen) return;
-    if (e.key === 'Escape') {
-      close();
-      return;
-    }
-    if (e.key === 'ArrowRight' || e.key === 'j') {
-      e.preventDefault();
-      show(index + 1);
-    } else if (e.key === 'ArrowLeft' || e.key === 'k') {
-      e.preventDefault();
-      show(index - 1);
-    }
-  }, { signal });
+  return {
+    open,
+    close,
+    destroy() {
+      if (advanceTimer) clearTimeout(advanceTimer);
+      document.documentElement.style.overflow = '';
+      document.body.classList.remove('focus-open');
+      overlay.remove();
+    },
+  };
+}
 
-  let touchStartX = 0;
-  overlay.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-  }, { signal });
-  overlay.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) show(dx < 0 ? index + 1 : index - 1);
-  }, { signal });
+/** Per-series "Slideshow" button — works/index.astro and works/[slug].astro. */
+export function initFocusMode() {
+  const library = document.querySelector<HTMLElement>('.library');
+  const trigger = document.querySelector<HTMLButtonElement>('.focus-trigger');
+  if (!library || !trigger) return;
+
+  // astro:page-load fires on the initial load too, in addition to the
+  // direct call right after this function is defined — guard so we don't
+  // build a second player and double-bind the trigger.
+  if (trigger.dataset.bound === '1') return;
+  trigger.dataset.bound = '1';
+
+  const figures = Array.from(library.querySelectorAll<HTMLElement>('.figure'));
+  if (figures.length === 0) return;
+
+  const titleText = document.querySelector('.series-head .title')?.textContent ?? '';
+  const slides: Slide[] = figures.map((fig) => {
+    const img = fig.querySelector('img');
+    return {
+      src: img?.currentSrc || img?.src || '',
+      alt: img?.alt ?? '',
+      title: titleText,
+    };
+  });
+
+  const player = createFocusPlayer(slides, {
+    ariaLabel: titleText ? `${titleText} — slideshow` : 'Slideshow',
+  });
+
+  function findCurrentIndex() {
+    const anchor = 120;
+    let idx = 0;
+    for (let i = 0; i < figures.length; i++) {
+      if (figures[i].getBoundingClientRect().top <= anchor) idx = i;
+    }
+    return idx;
+  }
+
+  const controller = new AbortController();
+  trigger.addEventListener('click', () => player.open(findCurrentIndex()), { signal: controller.signal });
 
   document.addEventListener('astro:before-swap', () => {
     controller.abort();
-    document.documentElement.style.overflow = '';
-    document.body.classList.remove('focus-open');
-    overlay.remove();
+    player.destroy();
   }, { once: true });
 }

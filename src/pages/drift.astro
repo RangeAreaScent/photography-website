@@ -1,0 +1,97 @@
+---
+// Drift — every photograph on the site (works + monthly), shuffled, shown
+// one at a time in the same full-viewport slideshow used on works pages
+// (src/scripts/focus-mode.ts). Opens immediately on load; music starts
+// automatically; idles into auto-advance if left alone.
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+
+interface Slide {
+  src: string;
+  alt: string;
+  title: string;
+}
+
+const works = await getCollection('works');
+const monthly = await getCollection('monthly');
+
+const workSlides: Slide[] = await Promise.all(
+  works.flatMap((series) =>
+    series.data.photos.map(async (p) => {
+      const img = await getImage({ src: p.src, width: 1920, format: 'avif', quality: 82 });
+      return {
+        src: img.src,
+        alt: p.caption ?? series.data.title,
+        title: series.data.title,
+      };
+    }),
+  ),
+);
+
+const monthlySlides: Slide[] = await Promise.all(
+  monthly.map(async (entry) => {
+    const img = await getImage({ src: entry.data.photo, width: 1920, format: 'avif', quality: 82 });
+    const label = entry.data.date.toLocaleString('en-US', { year: 'numeric', month: 'long' });
+    return {
+      src: img.src,
+      alt: entry.data.caption ?? label,
+      title: label,
+    };
+  }),
+);
+
+const slides: Slide[] = [...workSlides, ...monthlySlides];
+---
+
+<Base
+  title="Drift — Doohee Lee"
+  description="Every photograph, in no particular order."
+>
+  {slides.length === 0 && <p class="drift-empty muted">Nothing to drift through yet.</p>}
+</Base>
+
+<script type="application/json" id="drift-data" set:html={JSON.stringify(slides)} />
+
+<style>
+  .drift-empty {
+    padding-top: 0.5rem;
+  }
+</style>
+
+<script>
+  import { createFocusPlayer, type Slide } from '../scripts/focus-mode';
+
+  function shuffle<T>(input: T[]): T[] {
+    const arr = input.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function initDrift() {
+    const dataEl = document.getElementById('drift-data');
+    if (!dataEl || dataEl.dataset.bound === '1') return;
+    dataEl.dataset.bound = '1';
+
+    const slides = shuffle(JSON.parse(dataEl.textContent || '[]') as Slide[]);
+    if (slides.length === 0) return;
+
+    const player = createFocusPlayer(slides, {
+      autoAdvanceMs: 6000,
+      autoPlayMusic: true,
+      ariaLabel: 'Drift — every photograph',
+      onClose: () => {
+        // Reuses the header's own home link so ClientRouter handles the
+        // transition, instead of a hard window.location reload.
+        document.querySelector<HTMLAnchorElement>('a.brand')?.click();
+      },
+    });
+    player.open(Math.floor(Math.random() * slides.length));
+  }
+
+  initDrift();
+  document.addEventListener('astro:page-load', initDrift);
+</script>
