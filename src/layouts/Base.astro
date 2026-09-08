@@ -68,7 +68,7 @@ const siteName = 'Doohee Lee — Photographs';
 
 <style>
   .content {
-    margin-left: 360px;
+    margin-left: calc(var(--nav-w) + var(--subnav-w));
     min-height: 100vh;
     padding: 2.5rem 0 6rem;
   }
@@ -79,7 +79,7 @@ const siteName = 'Doohee Lee — Photographs';
     padding: 0 1.5rem 0 1.5rem;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1400px) {
     .content {
       margin-left: 0;
       padding-top: 1rem;
@@ -90,3 +90,26 @@ const siteName = 'Doohee Lee — Photographs';
     }
   }
 </style>
+
+<script>
+  // Browsers pick a srcset candidate for <img sizes> once and generally
+  // won't fetch a larger one just because a later layout resize (e.g. the
+  // sidebar/top-nav breakpoint) makes more room — the image stays stuck at
+  // its original resolution until the next full navigation. Re-assigning
+  // `sizes` to itself nudges browsers to re-run the candidate-selection
+  // algorithm, so a resize actually upgrades the image instead of leaving
+  // it capped at the size it loaded at.
+  const w = window as unknown as { __imgSizesNudgeBound?: boolean };
+  if (!w.__imgSizesNudgeBound) {
+    w.__imgSizesNudgeBound = true;
+    let t: ReturnType<typeof setTimeout>;
+    window.addEventListener('resize', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        document.querySelectorAll<HTMLImageElement>('img[sizes]').forEach((img) => {
+          img.sizes = img.sizes;
+        });
+      }, 200);
+    });
+  }
+</script>

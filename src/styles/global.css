@@ -10,6 +10,12 @@
 
   --measure: 56rem;
   --pad-x: clamp(1.5rem, 4vw, 3rem);
+
+  /* Sidebar + sub-nav width. Fixed — the compact/horizontal breakpoint
+     (see Header.astro / Base.astro) is high enough that sidebar mode only
+     ever engages at widths where 200/160 is already the right size. */
+  --nav-w: 200px;
+  --subnav-w: 160px;
 }
 
 * {

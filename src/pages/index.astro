@@ -59,7 +59,7 @@ const hasNote = latest ? (latest.body ?? '').trim().length > 0 : false;
   }
 
   .hero :global(img) {
-    max-width: 100%;
+    max-width: min(100%, 1600px);
     max-height: 80vh;
     width: auto;
     height: auto;

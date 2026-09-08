@@ -100,7 +100,7 @@ const fmtMonth = (d: Date) =>
     position: fixed;
     top: 0;
     left: 0;
-    width: 200px;
+    width: var(--nav-w);
     height: 100vh;
     padding: 2.5rem 1.25rem 2.5rem 1.75rem;
     display: flex;
@@ -209,10 +209,10 @@ const fmtMonth = (d: Date) =>
   .sub-nav {
     position: fixed;
     top: 0;
-    left: 200px;
-    width: 160px;
+    left: var(--nav-w);
+    width: var(--subnav-w);
     height: 100vh;
-    padding: 6.1rem 0.75rem 2.5rem 0.5rem;
+    padding: 7.02rem 0.75rem 2.5rem 0.5rem;
     background: var(--bg);
     z-index: 9;
   }
@@ -248,14 +248,14 @@ const fmtMonth = (d: Date) =>
     border-bottom-color: var(--accent-color, var(--text));
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1400px) {
     .site-nav {
       position: static;
       width: 100%;
       height: auto;
       flex-direction: row;
       flex-wrap: wrap;
-      align-items: baseline;
+      align-items: center;
       justify-content: flex-start;
       gap: 1rem;
       padding: 1.25rem 1.25rem 0.75rem;
