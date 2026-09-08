@@ -33,7 +33,7 @@ const description = `${title}, ${year}${intro ? ` — ${intro}` : ''}`;
       <h1 class="title">{title}</h1>
       <span class="year muted">{year}</span>
       {photos.length > 0 && (
-        <button class="focus-trigger" type="button">Slideshow</button>
+        <button class="focus-trigger" type="button" aria-label="Slideshow">▶</button>
       )}
       {intro && <p class="intro muted">{intro}</p>}
     </header>

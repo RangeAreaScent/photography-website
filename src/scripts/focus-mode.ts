@@ -37,7 +37,12 @@ export function initFocusMode() {
       <img class="focus-img focus-img-a" alt="" />
       <img class="focus-img focus-img-b" alt="" />
     </div>
-    <p class="focus-counter"></p>
+    <div class="focus-bottom">
+      <button class="focus-music-btn off" type="button" aria-label="Play music">
+        <span class="focus-music-icon" aria-hidden="true">♪</span>
+      </button>
+      <p class="focus-counter"></p>
+    </div>
     <button class="focus-close" type="button" aria-label="Close slideshow">×</button>
   `;
   document.body.appendChild(overlay);
@@ -46,6 +51,7 @@ export function initFocusMode() {
   const imgB = overlay.querySelector<HTMLImageElement>('.focus-img-b')!;
   const counter = overlay.querySelector<HTMLElement>('.focus-counter')!;
   const closeBtn = overlay.querySelector<HTMLButtonElement>('.focus-close')!;
+  const musicBtn = overlay.querySelector<HTMLButtonElement>('.focus-music-btn')!;
 
   let activeLayer = imgA;
   let inactiveLayer = imgB;
@@ -114,6 +120,33 @@ export function initFocusMode() {
 
   trigger.addEventListener('click', () => open(findCurrentIndex()), { signal });
   closeBtn.addEventListener('click', close, { signal });
+
+  // Mirrors Header.astro's own music toggle — both buttons just reflect the
+  // one shared <audio id="bg-audio"> element's state, so they stay in sync
+  // without needing to know about each other.
+  const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
+  if (audio) {
+    const syncMusicBtn = () => {
+      musicBtn.classList.toggle('off', audio.paused);
+      musicBtn.setAttribute('aria-label', audio.paused ? 'Play music' : 'Pause music');
+    };
+    musicBtn.addEventListener('click', async () => {
+      if (audio.paused) {
+        try {
+          await audio.play();
+        } catch {
+          // autoplay policy — ignore, user can click again
+        }
+      } else {
+        audio.pause();
+      }
+    }, { signal });
+    audio.addEventListener('play', syncMusicBtn, { signal });
+    audio.addEventListener('pause', syncMusicBtn, { signal });
+    syncMusicBtn();
+  } else {
+    musicBtn.style.display = 'none';
+  }
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) close();
   }, { signal });

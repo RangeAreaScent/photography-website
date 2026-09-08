@@ -27,7 +27,7 @@ const description = first
           <h1 class="title">{first.data.title}</h1>
           <span class="year muted">{first.data.year}</span>
           {first.data.photos.length > 0 && (
-            <button class="focus-trigger" type="button">Slideshow</button>
+            <button class="focus-trigger" type="button" aria-label="Slideshow">▶</button>
           )}
           {first.data.intro && <p class="intro muted">{first.data.intro}</p>}
         </header>
