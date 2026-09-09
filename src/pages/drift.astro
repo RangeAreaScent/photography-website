@@ -11,6 +11,8 @@ interface Slide {
   src: string;
   alt: string;
   title: string;
+  width: number;
+  height: number;
 }
 
 const works = await getCollection('works');
@@ -24,6 +26,8 @@ const workSlides: Slide[] = await Promise.all(
         src: img.src,
         alt: p.caption ?? series.data.title,
         title: series.data.title,
+        width: img.attributes.width,
+        height: img.attributes.height,
       };
     }),
   ),
@@ -37,6 +41,8 @@ const monthlySlides: Slide[] = await Promise.all(
       src: img.src,
       alt: entry.data.caption ?? label,
       title: label,
+      width: img.attributes.width,
+      height: img.attributes.height,
     };
   }),
 );

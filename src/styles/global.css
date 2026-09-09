@@ -136,11 +136,13 @@ body.focus-open {
 
 /* Bottom-left caption, under the photo — small and light rather than a
    headline. Mirrors .focus-bottom's bottom-right placement on the other
-   side, so the frame reads as one quiet info bar. */
+   side, so the frame reads as one quiet info bar. Position (top/left,
+   top/right) is set by focus-mode.ts's positionCaptions(), pinned to the
+   actual displayed photo's corners rather than a fixed viewport offset —
+   necessary because photos narrower than the overlay would otherwise leave
+   a gap between the photo edge and the caption. */
 .focus-title {
   position: absolute;
-  bottom: 1.5rem;
-  left: 1.75rem;
   margin: 0;
   max-width: 45vw;
   color: rgba(255, 255, 255, 0.75);
@@ -154,8 +156,6 @@ body.focus-open {
 
 .focus-bottom {
   position: absolute;
-  bottom: 1.5rem;
-  right: 1.75rem;
   display: flex;
   flex-direction: row-reverse;
   align-items: center;
@@ -238,8 +238,6 @@ body.focus-open {
 
 @media (max-width: 700px) {
   .focus-title {
-    bottom: 1rem;
-    left: 1.25rem;
     max-width: 55vw;
     font-size: 0.8125rem;
   }
@@ -247,10 +245,5 @@ body.focus-open {
   .focus-close {
     top: 0.75rem;
     right: 0.75rem;
-  }
-
-  .focus-bottom {
-    bottom: 1rem;
-    right: 1.25rem;
   }
 }

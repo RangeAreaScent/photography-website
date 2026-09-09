@@ -16,6 +16,11 @@ export interface Slide {
   src: string;
   alt: string;
   title: string;
+  /** Intrinsic pixel size, used to size the <img> before it decodes so its
+   *  rendered box (and therefore the caption/counter pinned to its corners)
+   *  is correct on the very first layout, not just after the image loads. */
+  width: number;
+  height: number;
 }
 
 export interface FocusPlayerOptions {
@@ -61,6 +66,7 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
   const counter = overlay.querySelector<HTMLElement>('.focus-counter')!;
   const closeBtn = overlay.querySelector<HTMLButtonElement>('.focus-close')!;
   const musicBtn = overlay.querySelector<HTMLButtonElement>('.focus-music-btn')!;
+  const bottomBar = overlay.querySelector<HTMLElement>('.focus-bottom')!;
 
   let activeLayer = imgA;
   let inactiveLayer = imgB;
@@ -72,6 +78,19 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
     if (i < 0 || i >= slides.length) return;
     new Image().src = slides[i].src;
   };
+
+  // Pins the title (bottom-left) and counter/music (bottom-right) to the
+  // *photo's* actual rendered corners, not the viewport's — photos narrower
+  // than the overlay (portrait, or just not wide enough to hit max-width)
+  // otherwise leave a gap between the frame edge and the screen edge.
+  function positionCaptions() {
+    const rect = activeLayer.getBoundingClientRect();
+    const gap = 12; // px between the photo's bottom edge and the caption
+    titleEl.style.left = `${Math.round(rect.left)}px`;
+    titleEl.style.top = `${Math.round(rect.bottom + gap)}px`;
+    bottomBar.style.right = `${Math.round(window.innerWidth - rect.right)}px`;
+    bottomBar.style.top = `${Math.round(rect.bottom + gap)}px`;
+  }
 
   function scheduleAdvance() {
     if (advanceTimer) clearTimeout(advanceTimer);
@@ -88,6 +107,8 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
   function show(i: number) {
     index = (i + slides.length) % slides.length;
     const slide = slides[index];
+    inactiveLayer.width = slide.width;
+    inactiveLayer.height = slide.height;
     inactiveLayer.src = slide.src;
     inactiveLayer.alt = slide.alt;
     inactiveLayer.classList.add('visible');
@@ -98,6 +119,7 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
     counter.textContent = `${index + 1} / ${slides.length}`;
     preload(index - 1);
     preload(index + 1);
+    positionCaptions();
     scheduleAdvance();
   }
 
@@ -107,6 +129,8 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
     document.documentElement.style.overflow = 'hidden';
     index = (startIndex + slides.length) % slides.length;
     const slide = slides[index];
+    activeLayer.width = slide.width;
+    activeLayer.height = slide.height;
     activeLayer.src = slide.src;
     activeLayer.alt = slide.alt;
     activeLayer.classList.add('visible');
@@ -118,6 +142,7 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
     overlay.getBoundingClientRect();
     overlay.classList.add('open');
     closeBtn.focus();
+    positionCaptions();
     scheduleAdvance();
 
     if (options.autoPlayMusic) {
@@ -155,6 +180,15 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
       e.preventDefault();
       show(index - 1);
     }
+  });
+
+  // The width/height attrs set in show()/open() give the browser an
+  // intrinsic aspect ratio to lay out with immediately, but reposition once
+  // more on actual load and on viewport resize in case anything shifts.
+  imgA.addEventListener('load', positionCaptions);
+  imgB.addEventListener('load', positionCaptions);
+  window.addEventListener('resize', () => {
+    if (isOpen) positionCaptions();
   });
 
   let touchStartX = 0;
@@ -225,6 +259,8 @@ export function initFocusMode() {
       src: img?.currentSrc || img?.src || '',
       alt: img?.alt ?? '',
       title: titleText,
+      width: Number(img?.getAttribute('width')) || 0,
+      height: Number(img?.getAttribute('height')) || 0,
     };
   });
 
