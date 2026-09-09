@@ -134,19 +134,22 @@ body.focus-open {
   opacity: 1;
 }
 
-/* Matches .title in works/index.astro + works/[slug].astro exactly
-   (1.25rem / 500) so the slideshow header reads as the same title, not a
-   smaller caption of it. */
+/* Bottom-left caption, under the photo — small and light rather than a
+   headline. Mirrors .focus-bottom's bottom-right placement on the other
+   side, so the frame reads as one quiet info bar. */
 .focus-title {
   position: absolute;
-  top: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 1.5rem;
+  left: 1.75rem;
   margin: 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 1.25rem;
-  font-weight: 500;
+  max-width: 45vw;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.875rem;
+  font-weight: 300;
   letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .focus-bottom {
@@ -154,6 +157,7 @@ body.focus-open {
   bottom: 1.5rem;
   right: 1.75rem;
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   gap: 0.75rem;
 }
@@ -234,12 +238,10 @@ body.focus-open {
 
 @media (max-width: 700px) {
   .focus-title {
-    top: 1.25rem;
-    font-size: 1.0625rem;
-    max-width: 65vw;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    bottom: 1rem;
+    left: 1.25rem;
+    max-width: 55vw;
+    font-size: 0.8125rem;
   }
 
   .focus-close {
