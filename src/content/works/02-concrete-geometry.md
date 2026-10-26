@@ -2,6 +2,7 @@
 title: Concrete Geometry
 year: 2026
 order: 2
+intro: Lines, light, and the weight of walls.
 photos:
   - src: ./02-concrete-geometry/02-R0005942.jpg
   - src: ./02-concrete-geometry/03-R0005432.jpg

@@ -2,6 +2,7 @@
 title: Studies of sky
 year: 2026
 order: 3
+intro: Looking up, most days.
 photos:
   - src: ./03-studies-of-sky/R0000087.jpg
   - src: ./03-studies-of-sky/R0002099.jpg
