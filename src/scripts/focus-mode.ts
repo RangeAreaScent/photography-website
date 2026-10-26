@@ -151,21 +151,24 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
 
     // A plain two-way crossfade dips: while one photo fades out and the other
     // fades in, both are partly transparent and the dark background shows
-    // through. Instead, hold the outgoing photo at its current opacity
-    // underneath and fade only the incoming one in on top — and wait for the
-    // incoming to decode so we never fade in a blank frame.
+    // through. Instead, hold the outgoing photo opaque underneath while the
+    // incoming one fades in on top, and only then fade the outgoing one out
+    // over the second half. (Vanishing it outright at the end looks like a
+    // pop whenever it's a different shape and pokes out past the new photo.)
+    // Waits for the incoming photo to decode so we never fade in a blank frame.
     const reveal = () => {
       if (token !== showToken) return;
+      const total = fadeMs(incoming);
       const held = getComputedStyle(outgoing).opacity;
       outgoing.style.transition = 'none';
       outgoing.style.opacity = held;
       outgoing.style.zIndex = '1';
       outgoing.classList.remove('visible');
+      outgoing.getBoundingClientRect();
+      outgoing.style.transition = `opacity ${total / 2}ms ease-in ${total / 2}ms`;
+      outgoing.style.opacity = '0';
       incoming.classList.add('visible');
-      underTimers.set(
-        outgoing,
-        setTimeout(() => resetLayer(outgoing), fadeMs(incoming)),
-      );
+      underTimers.set(outgoing, setTimeout(() => resetLayer(outgoing), total));
     };
     incoming.decode().then(reveal, reveal);
   }
