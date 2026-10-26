@@ -8,6 +8,8 @@ const isActive = (href: string) =>
 
 const inWorks = pathname.startsWith('/works');
 const inMonthly = pathname.startsWith('/monthly');
+// /works itself is the centered table of contents, not a series page.
+const onWorksIndex = /^\/works\/?$/.test(pathname);
 
 const allWorks = inWorks
   ? (await getCollection('works')).sort((a, b) => a.data.order - b.data.order)
@@ -55,14 +57,14 @@ const fmtMonth = (d: Date) =>
     </button>
   </div>
 
-  {inWorks && (
+  {inWorks && !onWorksIndex && (
     <p class="hint">← → to step through photos</p>
   )}
 
   <p class="meta">© {new Date().getFullYear()}  Doohee Lee</p>
 </aside>
 
-{inWorks && allWorks.length > 0 && (
+{inWorks && !onWorksIndex && allWorks.length > 0 && (
   <aside class="sub-nav" aria-label="Series" style={`--accent-color: ${todayColor}`}>
     <ul>
       {allWorks.map((s) => (
