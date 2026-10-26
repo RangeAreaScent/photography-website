@@ -317,6 +317,7 @@ export function initFocusMode() {
   });
 
   const player = createFocusPlayer(slides, {
+    autoAdvanceMs: 8000, // same pace as Drift
     ariaLabel: titleText ? `${titleText} — slideshow` : 'Slideshow',
   });
 
