@@ -91,6 +91,17 @@ img {
   opacity: 0;
 }
 
+/* Pages that sit in the middle of the free space (/works menu, /about).
+   In sidebar mode the content column still reserves the sub-nav width on the
+   left even where there's no sub-nav, so shift back by half of it to center
+   the page in the space actually free beside the sidebar. */
+@media (min-width: 1401px) {
+  .free-center {
+    position: relative;
+    left: calc(var(--subnav-w) / -2);
+  }
+}
+
 /* Works gallery focus/slideshow mode — dark overlay, one photo, slow
    crossfade. Shared CSS for src/scripts/focus-mode.ts, used identically by
    works/index.astro and works/[slug].astro. */

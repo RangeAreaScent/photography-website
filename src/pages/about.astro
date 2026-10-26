@@ -3,8 +3,11 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { ogImageUrl } from '../lib/og';
 import portrait from '../assets/doohee.webp';
+import { monthColor } from '../lib/monthColors';
 
 const ogImage = await ogImageUrl(portrait, Astro.site);
+// Same day-of-week accent the nav uses (see Header.astro).
+const accent = monthColor(new Date().getDay());
 ---
 
 <Base
@@ -12,7 +15,7 @@ const ogImage = await ogImageUrl(portrait, Astro.site);
   description="Doohee Lee — based in Georgia, pursuing photography as a part of everyday life."
   ogImage={ogImage}
 >
-  <section class="about">
+  <section class="about free-center" style={`--accent-color: ${accent}`}>
     <figure class="portrait">
       <Image
         src={portrait}
@@ -25,6 +28,7 @@ const ogImage = await ogImageUrl(portrait, Astro.site);
     </figure>
 
     <h1 class="name">Doohee Lee</h1>
+    <span class="rule" aria-hidden="true"></span>
 
     <div class="bio">
       <p>Based in Georgia. Pursuing photography as a part of everyday life.</p>
@@ -41,50 +45,69 @@ const ogImage = await ogImageUrl(portrait, Astro.site);
 
 <style>
   .about {
-    padding-top: 0.5rem;
     max-width: 32rem;
+    margin: 0 auto;
+    padding-top: clamp(0.5rem, 4vh, 3rem);
+    text-align: center;
   }
 
   .portrait {
-    margin: 0 0 2.5rem;
+    margin: 0 0 2.25rem;
   }
 
+  /* Same voice as the /works menu: Garamond name, short hairline, centered
+     Garamond text; only the small contact line is sans. */
   .name {
-    font-size: 1.25rem;
-    font-weight: 500;
     margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0.005em;
     color: var(--text);
   }
 
+  .rule {
+    display: block;
+    width: 2rem;
+    height: 0;
+    margin: 1.5rem auto;
+    border-top: 0.5px solid var(--text-faint);
+  }
+
   .bio {
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    margin-bottom: 2.5rem;
-    border-top: 0.5px solid var(--rule);
     font-family: var(--font-serif);
-    font-size: 1.0625rem;
+    font-size: 1.1875rem;
   }
 
   .bio p {
-    margin: 0 0 0.625rem;
-    line-height: 1.7;
+    margin: 0 0 0.5rem;
+    line-height: 1.75;
     color: var(--text);
   }
 
   .links {
     list-style: none;
-    margin: 0;
+    margin: 2.5rem 0 0;
     padding: 0;
-    font-size: 0.9375rem;
-    font-style: italic;
-    color: var(--text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
   }
 
   .links li + li {
     margin-top: 0.4rem;
   }
 
-  .links a:hover {
+  .links a {
+    color: var(--text-muted);
+    border-bottom: 1px solid transparent;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+
+  .links a:hover,
+  .links a:focus-visible {
     color: var(--text);
+    border-bottom-color: var(--accent-color, var(--text));
   }
 </style>

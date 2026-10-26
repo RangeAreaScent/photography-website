@@ -16,7 +16,7 @@ const accent = monthColor(new Date().getDay());
   title="Works — Doohee Lee"
   description="Photo series by Doohee Lee."
 >
-  <section class="menu" style={`--accent-color: ${accent}`}>
+  <section class="menu free-center" style={`--accent-color: ${accent}`}>
     <h1 class="heading">Works</h1>
     <span class="rule" aria-hidden="true"></span>
 
@@ -46,16 +46,6 @@ const accent = monthColor(new Date().getDay());
     margin: 0 auto;
     padding-top: clamp(2rem, 12vh, 7rem);
     text-align: center;
-  }
-
-  /* In sidebar mode the content column still reserves the (here empty)
-     sub-nav width on the left; shift back so the menu is centered in the
-     space that's actually free beside the sidebar. */
-  @media (min-width: 1401px) {
-    .menu {
-      position: relative;
-      left: calc(var(--subnav-w) / -2);
-    }
   }
 
   .heading {
