@@ -92,9 +92,33 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
     bottomBar.style.top = `${Math.round(rect.bottom + gap)}px`;
   }
 
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let showToken = 0;
+  const underTimers = new WeakMap<HTMLImageElement, ReturnType<typeof setTimeout>>();
+
+  // Instantly hides a layer (no fade) and clears the inline state show() leaves
+  // on a layer that is sitting underneath the incoming photo.
+  function resetLayer(layer: HTMLImageElement) {
+    const t = underTimers.get(layer);
+    if (t) clearTimeout(t);
+    layer.classList.remove('visible');
+    layer.style.opacity = '';
+    layer.style.zIndex = '';
+    layer.style.transition = 'none';
+    layer.getBoundingClientRect(); // flush so the no-transition hide applies now
+    layer.style.transition = '';
+  }
+
+  // Quiet bracketed caption, e.g. [ Studies of sky, 2026 ].
+  const formatTitle = (t: string) => (t ? `[ ${t} ]` : '');
+
+  const fadeMs = (el: HTMLElement) =>
+    parseFloat(getComputedStyle(el).transitionDuration) * 1000 || 0;
+
   function scheduleAdvance() {
     if (advanceTimer) clearTimeout(advanceTimer);
     if (!options.autoAdvanceMs || slides.length < 2) return;
+    if (reducedMotion.matches) return; // no auto-advancing for reduced motion
     advanceTimer = setTimeout(() => {
       if (document.visibilityState === 'visible') {
         show(index + 1);
@@ -107,20 +131,43 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
   function show(i: number) {
     index = (i + slides.length) % slides.length;
     const slide = slides[index];
-    inactiveLayer.width = slide.width;
-    inactiveLayer.height = slide.height;
-    inactiveLayer.src = slide.src;
-    inactiveLayer.alt = slide.alt;
-    inactiveLayer.classList.add('visible');
-    activeLayer.classList.remove('visible');
-    [activeLayer, inactiveLayer] = [inactiveLayer, activeLayer];
+    const token = ++showToken;
+    const incoming = inactiveLayer;
+    const outgoing = activeLayer;
 
-    titleEl.textContent = slide.title;
+    resetLayer(incoming);
+    incoming.width = slide.width;
+    incoming.height = slide.height;
+    incoming.src = slide.src;
+    incoming.alt = slide.alt;
+    [activeLayer, inactiveLayer] = [incoming, outgoing];
+
+    titleEl.textContent = formatTitle(slide.title);
     counter.textContent = `${index + 1} / ${slides.length}`;
     preload(index - 1);
     preload(index + 1);
     positionCaptions();
     scheduleAdvance();
+
+    // A plain two-way crossfade dips: while one photo fades out and the other
+    // fades in, both are partly transparent and the dark background shows
+    // through. Instead, hold the outgoing photo at its current opacity
+    // underneath and fade only the incoming one in on top — and wait for the
+    // incoming to decode so we never fade in a blank frame.
+    const reveal = () => {
+      if (token !== showToken) return;
+      const held = getComputedStyle(outgoing).opacity;
+      outgoing.style.transition = 'none';
+      outgoing.style.opacity = held;
+      outgoing.style.zIndex = '1';
+      outgoing.classList.remove('visible');
+      incoming.classList.add('visible');
+      underTimers.set(
+        outgoing,
+        setTimeout(() => resetLayer(outgoing), fadeMs(incoming)),
+      );
+    };
+    incoming.decode().then(reveal, reveal);
   }
 
   function open(startIndex: number) {
@@ -129,12 +176,15 @@ export function createFocusPlayer(slides: Slide[], options: FocusPlayerOptions =
     document.documentElement.style.overflow = 'hidden';
     index = (startIndex + slides.length) % slides.length;
     const slide = slides[index];
+    showToken++; // cancel any fade still pending from before
+    resetLayer(inactiveLayer);
+    resetLayer(activeLayer);
     activeLayer.width = slide.width;
     activeLayer.height = slide.height;
     activeLayer.src = slide.src;
     activeLayer.alt = slide.alt;
     activeLayer.classList.add('visible');
-    titleEl.textContent = slide.title;
+    titleEl.textContent = formatTitle(slide.title);
     counter.textContent = `${index + 1} / ${slides.length}`;
     preload(index - 1);
     preload(index + 1);
@@ -253,12 +303,14 @@ export function initFocusMode() {
   if (figures.length === 0) return;
 
   const titleText = document.querySelector('.series-head .title')?.textContent ?? '';
+  const yearText = document.querySelector('.series-head .year')?.textContent?.trim() ?? '';
+  const captionText = [titleText, yearText].filter(Boolean).join(', ');
   const slides: Slide[] = figures.map((fig) => {
     const img = fig.querySelector('img');
     return {
       src: img?.currentSrc || img?.src || '',
       alt: img?.alt ?? '',
-      title: titleText,
+      title: captionText,
       width: Number(img?.getAttribute('width')) || 0,
       height: Number(img?.getAttribute('height')) || 0,
     };

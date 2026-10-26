@@ -99,9 +99,64 @@ const siteName = 'Doohee Lee — Photographs';
   // `sizes` to itself nudges browsers to re-run the candidate-selection
   // algorithm, so a resize actually upgrades the image instead of leaving
   // it capped at the size it loaded at.
+  // Photos that haven't loaded yet start transparent (.img-pending) and fade
+  // in on load. Already-loaded images (cache hits, back/forward) are left
+  // alone so nothing flashes.
+  //
+  // Unloaded images would otherwise collapse to 0x0 (the pages size photos
+  // with width/height:auto, which overrides the width/height attributes), so
+  // every lazy photo below the fold shoves the layout down as it arrives.
+  // While pending we give the box the size it will end up with — the `sizes`
+  // slot, limited by max-height at the photo's aspect ratio (CSS max-width
+  // already clamps width without breaking the ratio) — then drop the inline
+  // size on load and the natural sizing takes over.
+  function sizesSlotPx(sizes: string): number {
+    for (const part of sizes.split(',')) {
+      const m = part.trim().match(/^(?:\((.+)\)\s+)?(\d+(?:\.\d+)?)(vw|px|rem)$/);
+      if (!m) continue;
+      if (m[1] && !window.matchMedia(`(${m[1]})`).matches) continue;
+      const n = Number(m[2]);
+      if (m[3] === 'vw') return (window.innerWidth * n) / 100;
+      if (m[3] === 'rem') return n * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      return n;
+    }
+    return window.innerWidth;
+  }
+
+  function fadeInImages() {
+    document.querySelectorAll<HTMLImageElement>('.content img').forEach((img) => {
+      if (img.complete || img.dataset.fade === '1') return;
+      img.dataset.fade = '1';
+      img.classList.add('img-pending');
+
+      const iw = Number(img.getAttribute('width'));
+      const ih = Number(img.getAttribute('height'));
+      const reserved = iw > 0 && ih > 0;
+      if (reserved) {
+        const maxH = parseFloat(getComputedStyle(img).maxHeight);
+        let width = sizesSlotPx(img.sizes || '');
+        if (maxH) width = Math.min(width, (maxH * iw) / ih);
+        img.style.aspectRatio = `${iw} / ${ih}`;
+        img.style.width = `${Math.round(width)}px`;
+      }
+
+      const done = () => {
+        img.classList.remove('img-pending');
+        if (reserved) {
+          img.style.aspectRatio = '';
+          img.style.width = '';
+        }
+      };
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+    });
+  }
+
   const w = window as unknown as { __imgSizesNudgeBound?: boolean };
   if (!w.__imgSizesNudgeBound) {
     w.__imgSizesNudgeBound = true;
+    fadeInImages();
+    document.addEventListener('astro:page-load', fadeInImages);
     let t: ReturnType<typeof setTimeout>;
     window.addEventListener('resize', () => {
       clearTimeout(t);

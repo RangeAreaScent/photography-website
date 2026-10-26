@@ -25,7 +25,7 @@ const workSlides: Slide[] = await Promise.all(
       return {
         src: img.src,
         alt: p.caption ?? series.data.title,
-        title: series.data.title,
+        title: `${series.data.title}, ${series.data.year}`,
         width: img.attributes.width,
         height: img.attributes.height,
       };

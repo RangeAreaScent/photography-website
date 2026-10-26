@@ -72,6 +72,25 @@ img {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* The sidebar/top nav is named in Header.astro so it gets its own snapshot
+   layer; skipping the fade here makes it hold still while the page content
+   crossfades underneath, instead of dissolving into itself every navigation. */
+::view-transition-old(site-nav),
+::view-transition-new(site-nav) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Photos fade in as they finish loading (see the script in Base.astro that
+   marks not-yet-loaded images .img-pending) instead of popping in. */
+.content img {
+  transition: opacity 500ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.content img.img-pending {
+  opacity: 0;
+}
+
 /* Works gallery focus/slideshow mode — dark overlay, one photo, slow
    crossfade. Shared CSS for src/scripts/focus-mode.ts, used identically by
    works/index.astro and works/[slug].astro. */
@@ -127,11 +146,15 @@ body.focus-open {
   width: auto;
   height: auto;
   opacity: 0;
+  z-index: 0;
   transition: opacity 1500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* The incoming photo fades in on top (z-index 2) of the outgoing one, which
+   focus-mode.ts holds opaque underneath (z-index 1) — see show(). */
 .focus-img.visible {
   opacity: 1;
+  z-index: 2;
 }
 
 /* Bottom-left caption, under the photo — small and light rather than a
@@ -245,5 +268,29 @@ body.focus-open {
   .focus-close {
     top: 0.75rem;
     right: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .content img {
+    transition: none;
+  }
+
+  .focus-overlay {
+    transition: opacity 200ms ease, visibility 0s linear 200ms;
+  }
+
+  .focus-overlay.open {
+    transition: opacity 200ms ease, visibility 0s linear 0s;
+  }
+
+  .focus-img {
+    transition-duration: 200ms;
   }
 }
